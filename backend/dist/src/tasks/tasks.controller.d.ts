@@ -6,6 +6,7 @@ export declare class TasksController {
     private readonly tasksService;
     constructor(tasksService: TasksService);
     findAll(user: JwtPayload): Promise<unknown>;
+    getStats(user: JwtPayload): Promise<unknown>;
     create(user: JwtPayload, dto: CreateTaskDto): Promise<unknown>;
     update(user: JwtPayload, id: string, dto: UpdateTaskDto): Promise<unknown>;
     remove(user: JwtPayload, id: string): Promise<unknown>;

@@ -14,6 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AnalyticsController = void 0;
 const common_1 = require("@nestjs/common");
+const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const current_user_decorator_1 = require("../common/decorators/current-user.decorator");
 const analytics_service_1 = require("./analytics.service");
@@ -35,6 +36,7 @@ let AnalyticsController = class AnalyticsController {
 exports.AnalyticsController = AnalyticsController;
 __decorate([
     (0, common_1.Get)('weekly'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get weekly productivity chart data' }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -42,6 +44,7 @@ __decorate([
 ], AnalyticsController.prototype, "getWeekly", null);
 __decorate([
     (0, common_1.Get)('monthly'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get monthly productivity chart data' }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -49,12 +52,14 @@ __decorate([
 ], AnalyticsController.prototype, "getMonthly", null);
 __decorate([
     (0, common_1.Get)('recommendations'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get AI-powered behaviour recommendations' }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "getRecommendations", null);
 exports.AnalyticsController = AnalyticsController = __decorate([
+    (0, swagger_1.ApiTags)('analytics'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)('analytics'),
     __metadata("design:paramtypes", [analytics_service_1.AnalyticsService])

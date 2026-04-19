@@ -4,6 +4,18 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 
+export interface TaskStats {
+  total: number;
+  todo: number;
+  inProgress: number;
+  done: number;
+  highPriority: number;
+  mediumPriority: number;
+  lowPriority: number;
+  overdueCount: number;
+  completionRate: number;
+}
+
 @Injectable()
 export class TasksService {
   constructor(private readonly prisma: PrismaService) {}
@@ -13,6 +25,38 @@ export class TasksService {
       where: { userId },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async getStats(userId: string): Promise<TaskStats> {
+    const tasks = await this.prisma.task.findMany({
+      where: { userId },
+      select: { status: true, priority: true, deadline: true },
+    });
+
+    const now = new Date();
+    const total = tasks.length;
+    const todo = tasks.filter((t) => t.status === 'TODO').length;
+    const inProgress = tasks.filter((t) => t.status === 'IN_PROGRESS').length;
+    const done = tasks.filter((t) => t.status === 'DONE').length;
+    const highPriority = tasks.filter((t) => t.priority === 'HIGH').length;
+    const mediumPriority = tasks.filter((t) => t.priority === 'MEDIUM').length;
+    const lowPriority = tasks.filter((t) => t.priority === 'LOW').length;
+    const overdueCount = tasks.filter(
+      (t) => t.deadline && t.deadline < now && t.status !== 'DONE',
+    ).length;
+    const completionRate = total > 0 ? Math.round((done / total) * 100) : 0;
+
+    return {
+      total,
+      todo,
+      inProgress,
+      done,
+      highPriority,
+      mediumPriority,
+      lowPriority,
+      overdueCount,
+      completionRate,
+    };
   }
 
   create(userId: string, dto: CreateTaskDto) {

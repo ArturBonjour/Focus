@@ -9,6 +9,7 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../auth/strategies/jwt.strategy';
@@ -17,17 +18,20 @@ import { TrackHabitDto } from './dto/track-habit.dto';
 import { UpdateHabitDto } from './dto/update-habit.dto';
 import { HabitsService } from './habits.service';
 
+@ApiTags('habits')
 @UseGuards(JwtAuthGuard)
 @Controller('habits')
 export class HabitsController {
   constructor(private readonly habitsService: HabitsService) {}
 
   @Get()
+  @ApiOperation({ summary: 'Get all habits' })
   findAll(@CurrentUser() user: JwtPayload): Promise<unknown> {
     return this.habitsService.findAll(user.sub);
   }
 
   @Post()
+  @ApiOperation({ summary: 'Create a habit' })
   create(
     @CurrentUser() user: JwtPayload,
     @Body() dto: CreateHabitDto,
@@ -36,6 +40,7 @@ export class HabitsController {
   }
 
   @Put(':id')
+  @ApiOperation({ summary: 'Update a habit' })
   update(
     @CurrentUser() user: JwtPayload,
     @Param('id') id: string,
@@ -45,6 +50,7 @@ export class HabitsController {
   }
 
   @Patch(':id/track')
+  @ApiOperation({ summary: 'Mark habit as done for a day' })
   track(
     @CurrentUser() user: JwtPayload,
     @Param('id') id: string,
@@ -54,6 +60,7 @@ export class HabitsController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a habit' })
   remove(
     @CurrentUser() user: JwtPayload,
     @Param('id') id: string,

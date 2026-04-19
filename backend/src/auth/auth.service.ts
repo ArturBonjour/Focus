@@ -79,6 +79,11 @@ export class AuthService {
     return this.issueTokens(user);
   }
 
+  async logout(userId: string): Promise<{ success: boolean }> {
+    await this.usersService.updateRefreshTokenHash(userId, null);
+    return { success: true };
+  }
+
   private async issueTokens(user: User): Promise<Tokens> {
     const payload = { sub: user.id, email: user.email };
 

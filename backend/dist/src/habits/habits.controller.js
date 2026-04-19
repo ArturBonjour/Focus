@@ -14,6 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HabitsController = void 0;
 const common_1 = require("@nestjs/common");
+const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const current_user_decorator_1 = require("../common/decorators/current-user.decorator");
 const create_habit_dto_1 = require("./dto/create-habit.dto");
@@ -44,6 +45,7 @@ let HabitsController = class HabitsController {
 exports.HabitsController = HabitsController;
 __decorate([
     (0, common_1.Get)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Get all habits' }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -51,6 +53,7 @@ __decorate([
 ], HabitsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Create a habit' }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -59,6 +62,7 @@ __decorate([
 ], HabitsController.prototype, "create", null);
 __decorate([
     (0, common_1.Put)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Update a habit' }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Param)('id')),
     __param(2, (0, common_1.Body)()),
@@ -68,6 +72,7 @@ __decorate([
 ], HabitsController.prototype, "update", null);
 __decorate([
     (0, common_1.Patch)(':id/track'),
+    (0, swagger_1.ApiOperation)({ summary: 'Mark habit as done for a day' }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Param)('id')),
     __param(2, (0, common_1.Body)()),
@@ -77,6 +82,7 @@ __decorate([
 ], HabitsController.prototype, "track", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Delete a habit' }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -84,6 +90,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], HabitsController.prototype, "remove", null);
 exports.HabitsController = HabitsController = __decorate([
+    (0, swagger_1.ApiTags)('habits'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)('habits'),
     __metadata("design:paramtypes", [habits_service_1.HabitsService])

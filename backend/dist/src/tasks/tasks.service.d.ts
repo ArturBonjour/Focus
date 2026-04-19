@@ -1,6 +1,17 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+export interface TaskStats {
+    total: number;
+    todo: number;
+    inProgress: number;
+    done: number;
+    highPriority: number;
+    mediumPriority: number;
+    lowPriority: number;
+    overdueCount: number;
+    completionRate: number;
+}
 export declare class TasksService {
     private readonly prisma;
     constructor(prisma: PrismaService);
@@ -16,6 +27,7 @@ export declare class TasksService {
         completedAt: Date | null;
         userId: string;
     }[]>;
+    getStats(userId: string): Promise<TaskStats>;
     create(userId: string, dto: CreateTaskDto): import("@prisma/client").Prisma.Prisma__TaskClient<{
         id: string;
         createdAt: Date;

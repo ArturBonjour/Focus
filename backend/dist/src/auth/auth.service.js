@@ -91,6 +91,10 @@ let AuthService = class AuthService {
         }
         return this.issueTokens(user);
     }
+    async logout(userId) {
+        await this.usersService.updateRefreshTokenHash(userId, null);
+        return { success: true };
+    }
     async issueTokens(user) {
         const payload = { sub: user.id, email: user.email };
         const accessToken = await this.jwtService.signAsync(payload, {
