@@ -3,7 +3,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../auth/strategies/jwt.strategy';
-import { UsersService } from './users.service';
+import { UsersService, UserStats } from './users.service';
 
 interface UserProfile {
   id: string;
@@ -29,5 +29,11 @@ export class UsersController {
       createdAt: found.createdAt,
       updatedAt: found.updatedAt,
     };
+  }
+
+  @Get('me/stats')
+  @ApiOperation({ summary: 'Get gamification stats: XP, level, achievements' })
+  getStats(@CurrentUser() user: JwtPayload): Promise<UserStats> {
+    return this.usersService.getStats(user.sub);
   }
 }

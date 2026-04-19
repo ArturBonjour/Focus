@@ -54,22 +54,20 @@ export class AnalyticsService {
   }
 
   async getSummary(userId: string): Promise<AnalyticsSummary> {
-    const [tasks, habits] = await Promise.all([
-      this.prisma.task.findMany({
-        where: { userId },
-        select: {
-          status: true,
-          priority: true,
-          deadline: true,
-          createdAt: true,
-          completedAt: true,
-        },
-      }),
-      this.prisma.habit.findMany({
-        where: { userId },
-        select: { streak: true, completedDays: true },
-      }),
-    ]);
+    const tasks = await this.prisma.task.findMany({
+      where: { userId },
+      select: {
+        status: true,
+        priority: true,
+        deadline: true,
+        createdAt: true,
+        completedAt: true,
+      },
+    });
+    const habits = await this.prisma.habit.findMany({
+      where: { userId },
+      select: { streak: true, completedDays: true },
+    });
 
     const now = new Date();
 
@@ -258,28 +256,18 @@ export class AnalyticsService {
     const lastWeekStart = new Date(thisWeekStart);
     lastWeekStart.setDate(thisWeekStart.getDate() - 7);
 
-    const [thisWeekTasks, lastWeekTasks, thisWeekHabits, lastWeekHabits] =
-      await Promise.all([
-        this.prisma.task.findMany({
-          where: { userId, createdAt: { gte: thisWeekStart } },
-          select: { status: true },
-        }),
-        this.prisma.task.findMany({
-          where: {
-            userId,
-            createdAt: { gte: lastWeekStart, lt: thisWeekStart },
-          },
-          select: { status: true },
-        }),
-        this.prisma.habit.findMany({
-          where: { userId },
-          select: { completedDays: true },
-        }),
-        this.prisma.habit.findMany({
-          where: { userId },
-          select: { completedDays: true },
-        }),
-      ]);
+    const thisWeekTasks = await this.prisma.task.findMany({
+      where: { userId, createdAt: { gte: thisWeekStart } },
+      select: { status: true },
+    });
+    const lastWeekTasks = await this.prisma.task.findMany({
+      where: { userId, createdAt: { gte: lastWeekStart, lt: thisWeekStart } },
+      select: { status: true },
+    });
+    const allHabits = await this.prisma.habit.findMany({
+      where: { userId },
+      select: { completedDays: true },
+    });
 
     const toDateStr = (d: Date) => d.toISOString().slice(0, 10);
     const thisWeekDates = new Set(
@@ -318,8 +306,8 @@ export class AnalyticsService {
     ).length;
     const thisTotal = thisWeekTasks.length;
     const prevTotal = lastWeekTasks.length;
-    const thisHabits = countHabitDays(thisWeekHabits, thisWeekDates);
-    const prevHabits = countHabitDays(lastWeekHabits, lastWeekDates);
+    const thisHabits = countHabitDays(allHabits, thisWeekDates);
+    const prevHabits = countHabitDays(allHabits, lastWeekDates);
 
     function pct(curr: number, prev: number) {
       if (prev === 0) return curr > 0 ? 100 : 0;

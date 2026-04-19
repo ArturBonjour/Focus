@@ -100,4 +100,13 @@ export class TasksController {
   ): Promise<unknown> {
     return this.tasksService.remove(user.sub, id);
   }
+
+  @Post(':id/duplicate')
+  @ApiOperation({ summary: 'Duplicate a task' })
+  duplicate(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+  ): Promise<unknown> {
+    return this.tasksService.duplicate(user.sub, id);
+  }
 }

@@ -51,6 +51,9 @@ let TasksController = class TasksController {
     remove(user, id) {
         return this.tasksService.remove(user.sub, id);
     }
+    duplicate(user, id) {
+        return this.tasksService.duplicate(user.sub, id);
+    }
 };
 exports.TasksController = TasksController;
 __decorate([
@@ -122,6 +125,15 @@ __decorate([
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], TasksController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Post)(':id/duplicate'),
+    (0, swagger_1.ApiOperation)({ summary: 'Duplicate a task' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], TasksController.prototype, "duplicate", null);
 exports.TasksController = TasksController = __decorate([
     (0, swagger_1.ApiTags)('tasks'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

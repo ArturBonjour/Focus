@@ -15,4 +15,5 @@ export declare class TasksController {
     updateStatus(user: JwtPayload, id: string, dto: UpdateTaskStatusDto): Promise<unknown>;
     update(user: JwtPayload, id: string, dto: UpdateTaskDto): Promise<unknown>;
     remove(user: JwtPayload, id: string): Promise<unknown>;
+    duplicate(user: JwtPayload, id: string): Promise<unknown>;
 }

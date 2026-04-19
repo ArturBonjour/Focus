@@ -61,4 +61,16 @@ export declare class TasksService {
     remove(userId: string, taskId: string): Promise<{
         success: boolean;
     }>;
+    duplicate(userId: string, taskId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        title: string;
+        description: string | null;
+        priority: import("@prisma/client").$Enums.TaskPriority;
+        status: import("@prisma/client").$Enums.TaskStatus;
+        deadline: Date | null;
+        completedAt: Date | null;
+        userId: string;
+    }>;
 }

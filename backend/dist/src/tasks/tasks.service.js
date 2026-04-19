@@ -108,6 +108,24 @@ let TasksService = class TasksService {
         await this.prisma.task.delete({ where: { id: taskId } });
         return { success: true };
     }
+    async duplicate(userId, taskId) {
+        const existing = await this.prisma.task.findFirst({
+            where: { id: taskId, userId },
+        });
+        if (!existing) {
+            throw new common_1.NotFoundException('Task not found');
+        }
+        return this.prisma.task.create({
+            data: {
+                userId,
+                title: `${existing.title} (копия)`,
+                description: existing.description,
+                priority: existing.priority,
+                status: 'TODO',
+                deadline: existing.deadline,
+            },
+        });
+    }
 };
 exports.TasksService = TasksService;
 exports.TasksService = TasksService = __decorate([
