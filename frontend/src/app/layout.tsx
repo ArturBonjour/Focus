@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: { default: 'NeuroTrack', template: '%s | NeuroTrack' },
   description: 'Интеллектуальная система планирования и анализа продуктивности',
   icons: { icon: '/favicon.ico' },
+  keywords: ['продуктивность', 'задачи', 'привычки', 'фокус', 'планирование'],
 };
 
 export const viewport: Viewport = {
