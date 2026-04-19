@@ -9,6 +9,7 @@ import { DonutChart } from '@/components/donut-chart';
 import { QuickAddTask } from '@/components/quick-add-task';
 import { CommandPalette } from '@/components/command-palette';
 import { ToastProvider } from '@/components/toast';
+import { WelcomeBanner } from '@/components/welcome-banner';
 import { getDashboardData } from '@/lib/api';
 
 interface HomeProps {
@@ -28,59 +29,74 @@ export default async function Home({ searchParams }: HomeProps) {
   const highPriority = data.tasks.filter((t) => t.priority === 'HIGH' && t.status !== 'DONE').length;
   const totalStreak = data.habits.reduce((acc, h) => acc + h.streak, 0);
 
+  // Sparkline data from weekly chart
+  const completedSparkline = data.weekly.map((w) => w.completedTasksCount);
+  const totalSparkline = data.weekly.map((w) => w.totalTasksCount);
+
+  // Week-over-week trend for completed tasks
+  const wLen = data.weekly.length;
+  const weeklyTrend =
+    wLen >= 2 && data.weekly[wLen - 2].completedTasksCount > 0
+      ? Math.round(
+          ((data.weekly[wLen - 1].completedTasksCount -
+            data.weekly[wLen - 2].completedTasksCount) /
+            data.weekly[wLen - 2].completedTasksCount) *
+            100,
+        )
+      : null;
+
   const statusDonut = [
-    { name: 'Готово',      value: doneTasks,     color: '#10b981' },
-    { name: 'В процессе',  value: inProgressTasks, color: '#f59e0b' },
-    { name: 'Запланировано', value: todoTasks,    color: '#6366f1' },
+    { name: 'Готово', value: doneTasks, color: '#10b981' },
+    { name: 'В процессе', value: inProgressTasks, color: '#f59e0b' },
+    { name: 'Запланировано', value: todoTasks, color: '#6366f1' },
   ];
 
   const priorityDonut = [
-    { name: 'Высокий',  value: data.tasks.filter((t) => t.priority === 'HIGH').length,   color: '#ef4444' },
-    { name: 'Средний',  value: data.tasks.filter((t) => t.priority === 'MEDIUM').length, color: '#f59e0b' },
-    { name: 'Низкий',   value: data.tasks.filter((t) => t.priority === 'LOW').length,    color: '#10b981' },
+    { name: 'Высокий', value: data.tasks.filter((t) => t.priority === 'HIGH').length, color: '#ef4444' },
+    { name: 'Средний', value: data.tasks.filter((t) => t.priority === 'MEDIUM').length, color: '#f59e0b' },
+    { name: 'Низкий', value: data.tasks.filter((t) => t.priority === 'LOW').length, color: '#10b981' },
   ];
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
 
   return (
-    <div style={{ display: 'flex', minHeight: '100dvh' }}>
+    <div style={{ display: 'flex', minHeight: '100dvh', position: 'relative' }}>
+      {/* Ambient animated background blobs */}
+      <div className="ambient-bg" aria-hidden="true">
+        <div className="ambient-blob ambient-blob-1" />
+        <div className="ambient-blob ambient-blob-2" />
+        <div className="ambient-blob ambient-blob-3" />
+      </div>
+
       <Sidebar />
       <ToastProvider />
       <CommandPalette tasks={data.tasks} habits={data.habits} />
 
-      <main className="main-content" style={{ flex: 1 }}>
+      <main className="main-content" style={{ flex: 1, position: 'relative', zIndex: 1 }}>
         {/* ── Header ── */}
-        <header className="animate-fade-in" style={{ marginBottom: 28 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-                <h1 style={{
-                  fontSize: 'clamp(1.4rem, 3vw, 1.9rem)',
-                  fontWeight: 800,
-                  color: 'var(--text-primary)',
-                  lineHeight: 1.15,
-                  letterSpacing: '-0.03em',
-                }}>
-                  Дашборд продуктивности
-                </h1>
-                <span className={`badge badge-${data.mode === 'demo' ? 'progress' : 'done'}`} style={{ fontSize: '0.7rem' }}>
-                  {data.mode === 'demo' ? 'Demo' : '● Live'}
-                </span>
-              </div>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                {new Date().toLocaleDateString('ru', { weekday: 'long', day: 'numeric', month: 'long' })}
-              </p>
+        <header className="animate-fade-in" style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <h1 style={{
+                fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
+                fontWeight: 700,
+                color: 'var(--text-secondary)',
+                letterSpacing: '-0.01em',
+              }}>
+                NeuroTrack
+              </h1>
+              <span className={`badge badge-${data.mode === 'demo' ? 'progress' : 'done'}`} style={{ fontSize: '0.68rem' }}>
+                {data.mode === 'demo' ? 'Demo' : '● Live'}
+              </span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              {/* Cmd+K hint */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <button
-                id="open-palette"
+                className="btn btn-ghost"
+                style={{ gap: 6, fontSize: '0.78rem', padding: '6px 12px' }}
                 onClick={() => {
                   document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true }));
                 }}
-                className="btn btn-ghost"
-                style={{ gap: 6, fontSize: '0.78rem', padding: '6px 12px', display: 'flex', alignItems: 'center' }}
                 suppressHydrationWarning
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -92,9 +108,9 @@ export default async function Home({ searchParams }: HomeProps) {
               </button>
 
               {data.mode === 'demo' && (
-                <div className="card animate-scale-in" style={{ padding: '8px 14px', borderRadius: 12, maxWidth: 260 }}>
-                  <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                    💡 <code style={{ fontFamily: 'monospace', background: 'var(--border)', padding: '1px 6px', borderRadius: 4, color: 'var(--accent-1)' }}>?token=JWT</code> для live-данных
+                <div className="card animate-scale-in" style={{ padding: '6px 12px', borderRadius: 10 }}>
+                  <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                    💡 <code style={{ fontFamily: 'monospace', background: 'var(--border)', padding: '1px 5px', borderRadius: 4, color: 'var(--accent-1)' }}>?token=JWT</code>
                   </p>
                 </div>
               )}
@@ -102,28 +118,43 @@ export default async function Home({ searchParams }: HomeProps) {
           </div>
         </header>
 
+        {/* ── Welcome Banner ── */}
+        <WelcomeBanner
+          doneTasks={doneTasks}
+          totalTasks={totalTasks}
+          totalStreak={totalStreak}
+          habitsCount={data.habits.length}
+          todayProgress={completion}
+          weekly={data.weekly}
+        />
+
         {/* ── KPI Cards ── */}
-        <section className="stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(165px, 1fr))', gap: 14, marginBottom: 24 }}>
-          <StatCard label="Задач выполнено" value={`${doneTasks}/${totalTasks}`} subtitle={`Completion: ${completion}%`} icon="✅" accent="#6366f1" delay={0} />
-          <StatCard label="В процессе" value={inProgressTasks} subtitle="Активных задач" icon="⚡" accent="#f59e0b" delay={60} />
-          <StatCard label="Высокий приоритет" value={highPriority} subtitle="Требуют внимания" icon="🔴" accent="#ef4444" delay={120} />
+        <section className="stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, marginBottom: 20 }}>
+          <StatCard
+            label="Выполнено"
+            value={`${doneTasks}/${totalTasks}`}
+            subtitle={`${completion}% задач`}
+            icon="✅"
+            accent="#10b981"
+            delay={0}
+            sparkline={completedSparkline}
+            trend={weeklyTrend !== null ? { value: weeklyTrend, label: 'нед.' } : undefined}
+          />
+          <StatCard label="В процессе" value={inProgressTasks} subtitle="Активных" icon="⚡" accent="#f59e0b" delay={60} sparkline={totalSparkline} />
+          <StatCard label="Высокий приоритет" value={highPriority} subtitle="Срочных" icon="🔴" accent="#ef4444" delay={120} />
           <StatCard label="Streak суммарно" value={`${totalStreak}д`} subtitle={`${data.habits.length} привычек`} icon="🔥" accent="#f59e0b" delay={180} />
-          <StatCard label="Completion Rate" value={`${completion}%`} subtitle="За текущий период" icon="🎯" accent="#10b981" delay={240} />
+          <StatCard label="Completion Rate" value={`${completion}%`} subtitle="За период" icon="🎯" accent="#6366f1" delay={240} sparkline={completedSparkline} />
         </section>
 
         {/* ── Chart + Focus Timer ── */}
-        <section style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)',
-          gap: 16, marginBottom: 16,
-        }}>
-          <div className="card animate-slide-up" style={{ padding: '22px', animationDelay: '80ms' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, flexWrap: 'wrap', gap: 8 }}>
+        <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 14, marginBottom: 14 }}>
+          <div className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '80ms' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
               <div>
                 <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem', marginBottom: 2 }}>Продуктивность</h2>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>Выполненные vs всего задач</p>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Выполненные vs всего задач</p>
               </div>
-              <div style={{ display: 'flex', gap: 14, fontSize: '0.72rem' }}>
+              <div style={{ display: 'flex', gap: 12, fontSize: '0.72rem' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--text-tertiary)' }}>
                   <span style={{ width: 10, height: 10, borderRadius: 3, background: '#6366f1', display: 'inline-block' }} /> Выполнено
                 </span>
@@ -135,69 +166,60 @@ export default async function Home({ searchParams }: HomeProps) {
             <ProductivityChart data={data.weekly} />
           </div>
 
-          <div id="focus-timer" className="card animate-slide-up" style={{ padding: '22px', animationDelay: '140ms', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+          <div id="focus-timer" className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '140ms', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem', alignSelf: 'flex-start', width: '100%' }}>Focus Timer</h2>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', alignSelf: 'flex-start', width: '100%', marginBottom: 4 }}>Pomodoro 25/5</p>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', alignSelf: 'flex-start', width: '100%', marginBottom: 4 }}>Pomodoro 25 / 5</p>
             <FocusTimer />
           </div>
         </section>
 
         {/* ── Donut Charts ── */}
-        <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-          <div className="card animate-slide-up" style={{ padding: '22px', animationDelay: '120ms' }}>
+        <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+          <div className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '100ms' }}>
             <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem', marginBottom: 2 }}>По статусу</h2>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginBottom: 10 }}>Распределение задач</p>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: 8 }}>Распределение задач</p>
             <DonutChart data={statusDonut} centerValue={`${completion}%`} label="выполнено" />
           </div>
-
-          <div className="card animate-slide-up" style={{ padding: '22px', animationDelay: '150ms' }}>
+          <div className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '130ms' }}>
             <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem', marginBottom: 2 }}>По приоритету</h2>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginBottom: 10 }}>Срочность задач</p>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: 8 }}>Срочность задач</p>
             <DonutChart data={priorityDonut} centerValue={totalTasks} label="задач" />
           </div>
         </section>
 
         {/* ── Tasks + Habits ── */}
-        <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+        <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
           {/* Tasks */}
-          <div className="card animate-slide-up" style={{ padding: '22px', animationDelay: '160ms' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
+          <div className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '160ms' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
               <div>
                 <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem' }}>Задачи</h2>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: 2 }}>{totalTasks} задач</p>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 1 }}>{totalTasks} задач всего</p>
               </div>
               <QuickAddTask apiUrl={apiUrl} token={token} />
             </div>
-
             {/* Progress bar */}
-            <div style={{ height: 4, background: 'var(--border)', borderRadius: 99, marginBottom: 14, overflow: 'hidden' }}>
-              <div style={{
-                height: '100%', borderRadius: 99,
-                background: 'var(--accent-gradient)',
-                width: `${completion}%`,
-                transition: 'width 0.6s var(--ease)',
-              }} />
+            <div style={{ height: 3, background: 'var(--border)', borderRadius: 99, marginBottom: 12, overflow: 'hidden' }}>
+              <div style={{ height: '100%', borderRadius: 99, background: 'var(--accent-gradient)', width: `${completion}%`, transition: 'width 0.8s var(--ease)' }} />
             </div>
-
             <TaskFilterBar tasks={data.tasks} />
           </div>
 
           {/* Habits */}
-          <div className="card animate-slide-up" style={{ padding: '22px', animationDelay: '200ms' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+          <div className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '200ms' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <div>
                 <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem' }}>Привычки</h2>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: 2 }}>Ежедневные ритуалы</p>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 1 }}>Нажмите ✓ чтобы отметить сегодня</p>
               </div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                �� {totalStreak} дней суммарно
+              <span style={{ fontSize: '0.72rem', background: 'rgba(245,158,11,0.10)', borderRadius: 999, padding: '2px 10px', fontWeight: 600, color: '#d97706' }}>
+                🔥 {totalStreak}д
               </span>
             </div>
-
             <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {data.habits.map((habit) => (
                 <div key={habit.id} className="animate-slide-up">
-                  <HabitCard habit={habit} />
+                  <HabitCard habit={habit} apiUrl={apiUrl} token={token} />
                 </div>
               ))}
             </div>
@@ -206,14 +228,12 @@ export default async function Home({ searchParams }: HomeProps) {
 
         {/* ── Activity Heatmap ── */}
         {data.habits.length > 0 && (
-          <section id="heatmap-section" className="card animate-slide-up" style={{ padding: '22px', animationDelay: '240ms', marginBottom: 16 }}>
-            <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem', marginBottom: 4 }}>
-              История активности
-            </h2>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginBottom: 18 }}>
+          <section id="heatmap-section" className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '240ms', marginBottom: 14 }}>
+            <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem', marginBottom: 2 }}>История активности</h2>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: 16 }}>
               Выполнение привычек за последние 18 недель
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20, overflowX: 'auto', paddingBottom: 4 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18, overflowX: 'auto', paddingBottom: 4 }}>
               {data.habits.map((habit) => (
                 <ActivityHeatmap key={habit.id} completedDays={habit.completedDays} habitName={habit.name} />
               ))}
@@ -222,20 +242,20 @@ export default async function Home({ searchParams }: HomeProps) {
         )}
 
         {/* ── AI Recommendations ── */}
-        <section id="ai-section" className="card animate-slide-up" style={{ padding: '22px', animationDelay: '280ms', marginBottom: 16 }}>
+        <section id="ai-section" className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '280ms', marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
             <div style={{
-              width: 32, height: 32, borderRadius: 8,
+              width: 34, height: 34, borderRadius: 10,
               background: 'var(--accent-gradient)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '0.9rem',
-              boxShadow: '0 4px 12px rgba(99,102,241,0.25)',
+              fontSize: '1rem',
+              boxShadow: '0 4px 16px rgba(99,102,241,0.3)',
             }}>
               🧠
             </div>
             <div>
               <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem' }}>AI-инсайты</h2>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Персональные рекомендации</p>
+              <p style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>Персональные рекомендации на основе ваших данных</p>
             </div>
           </div>
 
@@ -243,19 +263,26 @@ export default async function Home({ searchParams }: HomeProps) {
             {data.recommendations.recommendations.map((rec, i) => (
               <div
                 key={rec}
-                className="animate-scale-in"
+                className="animate-scale-in gradient-border"
                 style={{
                   padding: '14px 16px',
                   borderRadius: 12,
                   background: `rgba(99,102,241,${0.04 + i * 0.02})`,
-                  border: '1px solid rgba(99,102,241,0.12)',
+                  border: '1px solid rgba(99,102,241,0.10)',
                   fontSize: '0.85rem',
                   lineHeight: 1.55,
                   color: 'var(--text-primary)',
-                  transition: 'transform 0.15s var(--ease)',
+                  transition: 'transform 0.2s var(--ease), box-shadow 0.2s var(--ease)',
+                  cursor: 'default',
                 }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'; }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-3px)';
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--shadow-lg)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
+                }}
               >
                 {rec}
               </div>
@@ -264,10 +291,10 @@ export default async function Home({ searchParams }: HomeProps) {
         </section>
 
         {/* ── Footer ── */}
-        <footer style={{ textAlign: 'center', padding: '16px 0 4px', color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>
-          NeuroTrack · AI Productivity System · v2.0
+        <footer style={{ textAlign: 'center', padding: '12px 0 4px', color: 'var(--text-tertiary)', fontSize: '0.72rem' }}>
+          NeuroTrack · AI Productivity System · v3.0
           <span style={{ marginLeft: 12 }}>
-            <kbd style={{ fontFamily: 'monospace', fontSize: '0.65rem', background: 'var(--border)', borderRadius: 4, padding: '1px 5px', color: 'var(--text-tertiary)' }}>⌘K</kbd> для быстрого доступа
+            <kbd style={{ fontFamily: 'monospace', fontSize: '0.62rem', background: 'var(--border)', borderRadius: 4, padding: '1px 5px', color: 'var(--text-tertiary)' }}>⌘K</kbd> для быстрого доступа
           </span>
         </footer>
       </main>
