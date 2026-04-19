@@ -10,6 +10,7 @@ import { QuickAddTask } from '@/components/quick-add-task';
 import { CommandPalette } from '@/components/command-palette';
 import { ToastProvider } from '@/components/toast';
 import { WelcomeBanner } from '@/components/welcome-banner';
+import { DailyGoalWidget } from '@/components/daily-goal-widget';
 import { getDashboardData } from '@/lib/api';
 
 interface HomeProps {
@@ -166,10 +167,13 @@ export default async function Home({ searchParams }: HomeProps) {
             <ProductivityChart data={data.weekly} />
           </div>
 
-          <div id="focus-timer" className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '140ms', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-            <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem', alignSelf: 'flex-start', width: '100%' }}>Focus Timer</h2>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', alignSelf: 'flex-start', width: '100%', marginBottom: 4 }}>Pomodoro 25 / 5</p>
+          <div id="focus-timer" className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '140ms', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem' }}>Focus Timer</h2>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: 4 }}>Pomodoro 25 / 5 / 15 · <kbd style={{ background: 'var(--border)', borderRadius: 4, padding: '1px 4px', fontFamily: 'monospace', fontSize: '0.65rem' }}>Space</kbd> старт/пауза</p>
             <FocusTimer />
+            <div style={{ borderTop: '1px solid var(--border)', marginTop: 8, paddingTop: 12 }}>
+              <DailyGoalWidget completedToday={doneTasks} totalTasks={totalTasks} />
+            </div>
           </div>
         </section>
 
@@ -202,7 +206,7 @@ export default async function Home({ searchParams }: HomeProps) {
             <div style={{ height: 3, background: 'var(--border)', borderRadius: 99, marginBottom: 12, overflow: 'hidden' }}>
               <div style={{ height: '100%', borderRadius: 99, background: 'var(--accent-gradient)', width: `${completion}%`, transition: 'width 0.8s var(--ease)' }} />
             </div>
-            <TaskFilterBar tasks={data.tasks} />
+            <TaskFilterBar tasks={data.tasks} apiUrl={apiUrl} token={token} />
           </div>
 
           {/* Habits */}
@@ -292,7 +296,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
         {/* ── Footer ── */}
         <footer style={{ textAlign: 'center', padding: '12px 0 4px', color: 'var(--text-tertiary)', fontSize: '0.72rem' }}>
-          NeuroTrack · AI Productivity System · v3.0
+          NeuroTrack · AI Productivity System · v4.0
           <span style={{ marginLeft: 12 }}>
             <kbd style={{ fontFamily: 'monospace', fontSize: '0.62rem', background: 'var(--border)', borderRadius: 4, padding: '1px 5px', color: 'var(--text-tertiary)' }}>⌘K</kbd> для быстрого доступа
           </span>

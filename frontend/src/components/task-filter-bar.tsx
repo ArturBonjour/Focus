@@ -7,18 +7,21 @@ import { TaskCard } from './task-card';
 type Filter = 'ALL' | 'TODO' | 'IN_PROGRESS' | 'DONE';
 
 const FILTERS: { value: Filter; label: string; emoji: string }[] = [
-  { value: 'ALL',         label: 'Все',      emoji: '📋' },
+  { value: 'ALL',         label: 'Все',          emoji: '📋' },
   { value: 'TODO',        label: 'Запланировано', emoji: '🔲' },
-  { value: 'IN_PROGRESS', label: 'В процессе', emoji: '⚡' },
-  { value: 'DONE',        label: 'Готово',   emoji: '✅' },
+  { value: 'IN_PROGRESS', label: 'В процессе',   emoji: '⚡' },
+  { value: 'DONE',        label: 'Готово',       emoji: '✅' },
 ];
 
 interface TaskFilterBarProps {
   tasks: Task[];
+  apiUrl?: string;
+  token?: string;
 }
 
-export function TaskFilterBar({ tasks }: TaskFilterBarProps) {
+export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilterBarProps) {
   const [active, setActive] = useState<Filter>('ALL');
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
 
   const counts: Record<Filter, number> = {
     ALL:         tasks.length,
@@ -27,8 +30,15 @@ export function TaskFilterBar({ tasks }: TaskFilterBarProps) {
     DONE:        tasks.filter((t) => t.status === 'DONE').length,
   };
 
-  const visible =
-    active === 'ALL' ? tasks : tasks.filter((t) => t.status === active);
+  const visible = active === 'ALL' ? tasks : tasks.filter((t) => t.status === active);
+
+  function handleDelete(id: string) {
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+  }
+
+  function handleDuplicate(newTask: Task) {
+    setTasks((prev) => [...prev, newTask]);
+  }
 
   return (
     <div>
@@ -64,13 +74,9 @@ export function TaskFilterBar({ tasks }: TaskFilterBarProps) {
               <span style={{
                 background: active === f.value ? 'rgba(99,102,241,0.15)' : 'var(--border-strong)',
                 color: active === f.value ? 'var(--accent-1)' : 'var(--text-tertiary)',
-                borderRadius: 999,
-                padding: '0px 5px',
-                fontSize: '0.68rem',
-                fontWeight: 700,
-                lineHeight: '16px',
-                minWidth: 16,
-                textAlign: 'center',
+                borderRadius: 999, padding: '0px 5px',
+                fontSize: '0.68rem', fontWeight: 700,
+                lineHeight: '16px', minWidth: 16, textAlign: 'center',
               }}>
                 {counts[f.value]}
               </span>
@@ -82,23 +88,25 @@ export function TaskFilterBar({ tasks }: TaskFilterBarProps) {
       {/* Task list */}
       {visible.length === 0 ? (
         <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
           padding: '28px 0',
-          color: 'var(--text-tertiary)',
-          fontSize: '0.85rem',
-          gap: 8,
+          color: 'var(--text-tertiary)', fontSize: '0.85rem', gap: 8,
         }}>
           <span style={{ fontSize: '2rem' }}>🎉</span>
-          <p>Нет задач в этом фильтре</p>
+          <p>{active === 'DONE' ? 'Нет выполненных задач' : 'Нет задач в этом фильтре'}</p>
         </div>
       ) : (
         <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {visible.map((task) => (
             <div key={task.id} className="animate-slide-up">
-              <TaskCard task={task} />
+              <TaskCard
+                task={task}
+                apiUrl={apiUrl}
+                token={token}
+                onDelete={handleDelete}
+                onDuplicate={handleDuplicate}
+              />
             </div>
           ))}
         </div>

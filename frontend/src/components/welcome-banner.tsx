@@ -1,4 +1,5 @@
 import type { ProductivityPoint } from '@/lib/api';
+import { LiveClock } from './live-clock';
 
 const QUOTES = [
   '\"Делайте сегодня то, чем гордится завтрашнее вы.\"',
@@ -154,6 +155,10 @@ export function WelcomeBanner({
               {weeklyChange >= 0 ? '↑' : '↓'} {Math.abs(weeklyChange)}%
             </span>
           )}
+          {/* Live clock */}
+          <span style={{ marginLeft: 'auto' }}>
+            <LiveClock />
+          </span>
         </div>
 
         {/* Quote */}
