@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -18,6 +19,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../auth/strategies/jwt.strategy';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 import { TasksService } from './tasks.service';
 
 @ApiTags('tasks')
@@ -68,6 +70,16 @@ export class TasksController {
     @Body() dto: CreateTaskDto,
   ): Promise<unknown> {
     return this.tasksService.create(user.sub, dto);
+  }
+
+  @Patch(':id/status')
+  @ApiOperation({ summary: 'Quick status update for a task' })
+  updateStatus(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @Body() dto: UpdateTaskStatusDto,
+  ): Promise<unknown> {
+    return this.tasksService.update(user.sub, id, dto);
   }
 
   @Put(':id')

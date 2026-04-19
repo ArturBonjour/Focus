@@ -35,6 +35,9 @@ let AnalyticsController = class AnalyticsController {
     getRecommendations(user) {
         return this.analyticsService.getRecommendations(user.sub);
     }
+    getTrends(user) {
+        return this.analyticsService.getTrends(user.sub);
+    }
 };
 exports.AnalyticsController = AnalyticsController;
 __decorate([
@@ -69,6 +72,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "getRecommendations", null);
+__decorate([
+    (0, common_1.Get)('trends'),
+    (0, swagger_1.ApiOperation)({ summary: 'Week-over-week trends comparison' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AnalyticsController.prototype, "getTrends", null);
 exports.AnalyticsController = AnalyticsController = __decorate([
     (0, swagger_1.ApiTags)('analytics'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

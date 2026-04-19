@@ -53,6 +53,21 @@ export class HabitsService {
     });
   }
 
+  async untrack(userId: string, habitId: string, dto: TrackHabitDto) {
+    const habit = await this.ensureOwnership(userId, habitId);
+
+    const normalizedDate = dto.date.slice(0, 10);
+    const completedDays = this.extractDays(habit).filter(
+      (d) => d !== normalizedDate,
+    );
+    const streak = this.calculateStreak(completedDays);
+
+    return this.prisma.habit.update({
+      where: { id: habitId },
+      data: { completedDays, streak },
+    });
+  }
+
   async remove(userId: string, habitId: string) {
     await this.ensureOwnership(userId, habitId);
     await this.prisma.habit.delete({ where: { id: habitId } });

@@ -43,4 +43,23 @@ export declare class AnalyticsService {
     getSummary(userId: string): Promise<AnalyticsSummary>;
     getRecommendations(userId: string): Promise<RecommendationPayload>;
     private getForPeriod;
+    getTrends(userId: string): Promise<TrendsPayload>;
+}
+export interface TrendsPayload {
+    completedTasks: {
+        current: number;
+        previous: number;
+        changePercent: number;
+    };
+    totalTasks: {
+        current: number;
+        previous: number;
+        changePercent: number;
+    };
+    habitCompletions: {
+        current: number;
+        previous: number;
+        changePercent: number;
+    };
+    trend: 'up' | 'down' | 'neutral';
 }

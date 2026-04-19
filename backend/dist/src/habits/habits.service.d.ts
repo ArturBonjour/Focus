@@ -41,6 +41,15 @@ export declare class HabitsService {
         streak: number;
         completedDays: import("@prisma/client/runtime/library").JsonValue;
     }>;
+    untrack(userId: string, habitId: string, dto: TrackHabitDto): Promise<{
+        name: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        streak: number;
+        completedDays: import("@prisma/client/runtime/library").JsonValue;
+    }>;
     remove(userId: string, habitId: string): Promise<{
         success: boolean;
     }>;

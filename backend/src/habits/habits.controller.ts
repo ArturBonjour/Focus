@@ -59,6 +59,16 @@ export class HabitsController {
     return this.habitsService.track(user.sub, id, dto);
   }
 
+  @Patch(':id/untrack')
+  @ApiOperation({ summary: 'Remove habit completion mark for a day' })
+  untrack(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @Body() dto: TrackHabitDto,
+  ): Promise<unknown> {
+    return this.habitsService.untrack(user.sub, id, dto);
+  }
+
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a habit' })
   remove(

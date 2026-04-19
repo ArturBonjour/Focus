@@ -176,6 +176,83 @@ let AnalyticsService = class AnalyticsService {
         });
         return [...map.values()];
     }
+    async getTrends(userId) {
+        const now = new Date();
+        const thisWeekStart = new Date(now);
+        thisWeekStart.setDate(now.getDate() - 6);
+        thisWeekStart.setHours(0, 0, 0, 0);
+        const lastWeekStart = new Date(thisWeekStart);
+        lastWeekStart.setDate(thisWeekStart.getDate() - 7);
+        const [thisWeekTasks, lastWeekTasks, thisWeekHabits, lastWeekHabits] = await Promise.all([
+            this.prisma.task.findMany({
+                where: { userId, createdAt: { gte: thisWeekStart } },
+                select: { status: true },
+            }),
+            this.prisma.task.findMany({
+                where: {
+                    userId,
+                    createdAt: { gte: lastWeekStart, lt: thisWeekStart },
+                },
+                select: { status: true },
+            }),
+            this.prisma.habit.findMany({
+                where: { userId },
+                select: { completedDays: true },
+            }),
+            this.prisma.habit.findMany({
+                where: { userId },
+                select: { completedDays: true },
+            }),
+        ]);
+        const toDateStr = (d) => d.toISOString().slice(0, 10);
+        const thisWeekDates = new Set(Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(thisWeekStart);
+            d.setDate(thisWeekStart.getDate() + i);
+            return toDateStr(d);
+        }));
+        const lastWeekDates = new Set(Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(lastWeekStart);
+            d.setDate(lastWeekStart.getDate() + i);
+            return toDateStr(d);
+        }));
+        const countHabitDays = (habits, dateSet) => habits.reduce((acc, h) => {
+            const days = Array.isArray(h.completedDays)
+                ? h.completedDays.filter((d) => typeof d === 'string')
+                : [];
+            return acc + days.filter((d) => dateSet.has(d)).length;
+        }, 0);
+        const thisCompleted = thisWeekTasks.filter((t) => t.status === 'DONE').length;
+        const prevCompleted = lastWeekTasks.filter((t) => t.status === 'DONE').length;
+        const thisTotal = thisWeekTasks.length;
+        const prevTotal = lastWeekTasks.length;
+        const thisHabits = countHabitDays(thisWeekHabits, thisWeekDates);
+        const prevHabits = countHabitDays(lastWeekHabits, lastWeekDates);
+        function pct(curr, prev) {
+            if (prev === 0)
+                return curr > 0 ? 100 : 0;
+            return Math.round(((curr - prev) / prev) * 100);
+        }
+        const completedChange = pct(thisCompleted, prevCompleted);
+        const trend = completedChange > 5 ? 'up' : completedChange < -5 ? 'down' : 'neutral';
+        return {
+            completedTasks: {
+                current: thisCompleted,
+                previous: prevCompleted,
+                changePercent: completedChange,
+            },
+            totalTasks: {
+                current: thisTotal,
+                previous: prevTotal,
+                changePercent: pct(thisTotal, prevTotal),
+            },
+            habitCompletions: {
+                current: thisHabits,
+                previous: prevHabits,
+                changePercent: pct(thisHabits, prevHabits),
+            },
+            trend,
+        };
+    }
 };
 exports.AnalyticsService = AnalyticsService;
 exports.AnalyticsService = AnalyticsService = __decorate([

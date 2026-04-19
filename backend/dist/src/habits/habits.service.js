@@ -53,6 +53,16 @@ let HabitsService = class HabitsService {
             },
         });
     }
+    async untrack(userId, habitId, dto) {
+        const habit = await this.ensureOwnership(userId, habitId);
+        const normalizedDate = dto.date.slice(0, 10);
+        const completedDays = this.extractDays(habit).filter((d) => d !== normalizedDate);
+        const streak = this.calculateStreak(completedDays);
+        return this.prisma.habit.update({
+            where: { id: habitId },
+            data: { completedDays, streak },
+        });
+    }
     async remove(userId, habitId) {
         await this.ensureOwnership(userId, habitId);
         await this.prisma.habit.delete({ where: { id: habitId } });

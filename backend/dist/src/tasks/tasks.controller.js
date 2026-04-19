@@ -20,6 +20,7 @@ const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const current_user_decorator_1 = require("../common/decorators/current-user.decorator");
 const create_task_dto_1 = require("./dto/create-task.dto");
 const update_task_dto_1 = require("./dto/update-task.dto");
+const update_task_status_dto_1 = require("./dto/update-task-status.dto");
 const tasks_service_1 = require("./tasks.service");
 let TasksController = class TasksController {
     tasksService;
@@ -40,6 +41,9 @@ let TasksController = class TasksController {
     }
     create(user, dto) {
         return this.tasksService.create(user.sub, dto);
+    }
+    updateStatus(user, id, dto) {
+        return this.tasksService.update(user.sub, id, dto);
     }
     update(user, id, dto) {
         return this.tasksService.update(user.sub, id, dto);
@@ -89,6 +93,16 @@ __decorate([
     __metadata("design:paramtypes", [Object, create_task_dto_1.CreateTaskDto]),
     __metadata("design:returntype", Promise)
 ], TasksController.prototype, "create", null);
+__decorate([
+    (0, common_1.Patch)(':id/status'),
+    (0, swagger_1.ApiOperation)({ summary: 'Quick status update for a task' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, update_task_status_dto_1.UpdateTaskStatusDto]),
+    __metadata("design:returntype", Promise)
+], TasksController.prototype, "updateStatus", null);
 __decorate([
     (0, common_1.Put)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Update a task' }),

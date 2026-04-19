@@ -38,6 +38,9 @@ let HabitsController = class HabitsController {
     track(user, id, dto) {
         return this.habitsService.track(user.sub, id, dto);
     }
+    untrack(user, id, dto) {
+        return this.habitsService.untrack(user.sub, id, dto);
+    }
     remove(user, id) {
         return this.habitsService.remove(user.sub, id);
     }
@@ -80,6 +83,16 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, track_habit_dto_1.TrackHabitDto]),
     __metadata("design:returntype", Promise)
 ], HabitsController.prototype, "track", null);
+__decorate([
+    (0, common_1.Patch)(':id/untrack'),
+    (0, swagger_1.ApiOperation)({ summary: 'Remove habit completion mark for a day' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, track_habit_dto_1.TrackHabitDto]),
+    __metadata("design:returntype", Promise)
+], HabitsController.prototype, "untrack", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Delete a habit' }),

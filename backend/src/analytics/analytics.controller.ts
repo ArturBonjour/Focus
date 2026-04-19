@@ -8,6 +8,7 @@ import {
   AnalyticsSummary,
   ProductivityPoint,
   RecommendationPayload,
+  TrendsPayload,
 } from './analytics.service';
 
 @ApiTags('analytics')
@@ -40,5 +41,11 @@ export class AnalyticsController {
     @CurrentUser() user: JwtPayload,
   ): Promise<RecommendationPayload> {
     return this.analyticsService.getRecommendations(user.sub);
+  }
+
+  @Get('trends')
+  @ApiOperation({ summary: 'Week-over-week trends comparison' })
+  getTrends(@CurrentUser() user: JwtPayload): Promise<TrendsPayload> {
+    return this.analyticsService.getTrends(user.sub);
   }
 }
