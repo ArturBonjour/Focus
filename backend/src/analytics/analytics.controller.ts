@@ -5,6 +5,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../auth/strategies/jwt.strategy';
 import {
   AnalyticsService,
+  AnalyticsSummary,
   ProductivityPoint,
   RecommendationPayload,
 } from './analytics.service';
@@ -25,6 +26,12 @@ export class AnalyticsController {
   @ApiOperation({ summary: 'Get monthly productivity chart data' })
   getMonthly(@CurrentUser() user: JwtPayload): Promise<ProductivityPoint[]> {
     return this.analyticsService.getMonthly(user.sub);
+  }
+
+  @Get('summary')
+  @ApiOperation({ summary: 'Get comprehensive analytics summary' })
+  getSummary(@CurrentUser() user: JwtPayload): Promise<AnalyticsSummary> {
+    return this.analyticsService.getSummary(user.sub);
   }
 
   @Get('recommendations')

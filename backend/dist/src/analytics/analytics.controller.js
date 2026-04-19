@@ -29,6 +29,9 @@ let AnalyticsController = class AnalyticsController {
     getMonthly(user) {
         return this.analyticsService.getMonthly(user.sub);
     }
+    getSummary(user) {
+        return this.analyticsService.getSummary(user.sub);
+    }
     getRecommendations(user) {
         return this.analyticsService.getRecommendations(user.sub);
     }
@@ -50,6 +53,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "getMonthly", null);
+__decorate([
+    (0, common_1.Get)('summary'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get comprehensive analytics summary' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AnalyticsController.prototype, "getSummary", null);
 __decorate([
     (0, common_1.Get)('recommendations'),
     (0, swagger_1.ApiOperation)({ summary: 'Get AI-powered behaviour recommendations' }),

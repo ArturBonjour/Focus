@@ -18,10 +18,23 @@ let TasksService = class TasksService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    findAll(userId) {
+    findAll(userId, filter = {}) {
+        const where = { userId };
+        if (filter.status) {
+            where['status'] = filter.status;
+        }
+        if (filter.priority) {
+            where['priority'] = filter.priority;
+        }
+        if (filter.search) {
+            where['OR'] = [
+                { title: { contains: filter.search, mode: 'insensitive' } },
+                { description: { contains: filter.search, mode: 'insensitive' } },
+            ];
+        }
         return this.prisma.task.findMany({
-            where: { userId },
-            orderBy: { createdAt: 'desc' },
+            where,
+            orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
         });
     }
     async getStats(userId) {

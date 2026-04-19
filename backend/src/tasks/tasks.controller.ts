@@ -6,9 +6,13 @@ import {
   Param,
   Post,
   Put,
+  Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { TaskPriority, TaskStatus } from '@prisma/client';
+import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../auth/strategies/jwt.strategy';
@@ -23,15 +27,38 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all tasks for current user' })
-  findAll(@CurrentUser() user: JwtPayload): Promise<unknown> {
-    return this.tasksService.findAll(user.sub);
+  @ApiOperation({ summary: 'Get tasks with optional filtering' })
+  @ApiQuery({ name: 'status', enum: TaskStatus, required: false })
+  @ApiQuery({ name: 'priority', enum: TaskPriority, required: false })
+  @ApiQuery({ name: 'search', type: String, required: false })
+  findAll(
+    @CurrentUser() user: JwtPayload,
+    @Query('status') status?: TaskStatus,
+    @Query('priority') priority?: TaskPriority,
+    @Query('search') search?: string,
+  ): Promise<unknown> {
+    return this.tasksService.findAll(user.sub, { status, priority, search });
   }
 
   @Get('stats')
   @ApiOperation({ summary: 'Get task statistics by status and priority' })
   getStats(@CurrentUser() user: JwtPayload): Promise<unknown> {
     return this.tasksService.getStats(user.sub);
+  }
+
+  @Get('export')
+  @ApiOperation({ summary: 'Export all tasks as JSON file' })
+  async export(
+    @CurrentUser() user: JwtPayload,
+    @Res() res: Response,
+  ): Promise<void> {
+    const tasks = await this.tasksService.findAll(user.sub, {});
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="tasks-${new Date().toISOString().slice(0, 10)}.json"`,
+    );
+    res.send(JSON.stringify(tasks, null, 2));
   }
 
   @Post()

@@ -20,6 +20,7 @@ const tasks_module_1 = require("./tasks/tasks.module");
 const habits_module_1 = require("./habits/habits.module");
 const analytics_module_1 = require("./analytics/analytics.module");
 const telegram_module_1 = require("./telegram/telegram.module");
+const scheduler_module_1 = require("./scheduler/scheduler.module");
 const logger_middleware_1 = require("./common/middleware/logger.middleware");
 let AppModule = class AppModule {
     configure(consumer) {
@@ -39,6 +40,7 @@ exports.AppModule = AppModule = __decorate([
             habits_module_1.HabitsModule,
             analytics_module_1.AnalyticsModule,
             telegram_module_1.TelegramModule,
+            scheduler_module_1.SchedulerModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

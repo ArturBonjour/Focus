@@ -1,3 +1,4 @@
+import { TaskPriority, TaskStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -12,10 +13,15 @@ export interface TaskStats {
     overdueCount: number;
     completionRate: number;
 }
+export interface TaskFilter {
+    status?: TaskStatus;
+    priority?: TaskPriority;
+    search?: string;
+}
 export declare class TasksService {
     private readonly prisma;
     constructor(prisma: PrismaService);
-    findAll(userId: string): import("@prisma/client").Prisma.PrismaPromise<{
+    findAll(userId: string, filter?: TaskFilter): import("@prisma/client").Prisma.PrismaPromise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;

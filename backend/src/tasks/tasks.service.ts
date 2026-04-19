@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { TaskStatus } from '@prisma/client';
+import { TaskPriority, TaskStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -16,14 +16,35 @@ export interface TaskStats {
   completionRate: number;
 }
 
+export interface TaskFilter {
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  search?: string;
+}
+
 @Injectable()
 export class TasksService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(userId: string) {
+  findAll(userId: string, filter: TaskFilter = {}) {
+    const where: Record<string, unknown> = { userId };
+
+    if (filter.status) {
+      where['status'] = filter.status;
+    }
+    if (filter.priority) {
+      where['priority'] = filter.priority;
+    }
+    if (filter.search) {
+      where['OR'] = [
+        { title: { contains: filter.search, mode: 'insensitive' } },
+        { description: { contains: filter.search, mode: 'insensitive' } },
+      ];
+    }
+
     return this.prisma.task.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
+      where,
+      orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
     });
   }
 

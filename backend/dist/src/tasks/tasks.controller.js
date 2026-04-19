@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TasksController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const client_1 = require("@prisma/client");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const current_user_decorator_1 = require("../common/decorators/current-user.decorator");
 const create_task_dto_1 = require("./dto/create-task.dto");
@@ -25,11 +26,17 @@ let TasksController = class TasksController {
     constructor(tasksService) {
         this.tasksService = tasksService;
     }
-    findAll(user) {
-        return this.tasksService.findAll(user.sub);
+    findAll(user, status, priority, search) {
+        return this.tasksService.findAll(user.sub, { status, priority, search });
     }
     getStats(user) {
         return this.tasksService.getStats(user.sub);
+    }
+    async export(user, res) {
+        const tasks = await this.tasksService.findAll(user.sub, {});
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="tasks-${new Date().toISOString().slice(0, 10)}.json"`);
+        res.send(JSON.stringify(tasks, null, 2));
     }
     create(user, dto) {
         return this.tasksService.create(user.sub, dto);
@@ -44,10 +51,16 @@ let TasksController = class TasksController {
 exports.TasksController = TasksController;
 __decorate([
     (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Get all tasks for current user' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Get tasks with optional filtering' }),
+    (0, swagger_1.ApiQuery)({ name: 'status', enum: client_1.TaskStatus, required: false }),
+    (0, swagger_1.ApiQuery)({ name: 'priority', enum: client_1.TaskPriority, required: false }),
+    (0, swagger_1.ApiQuery)({ name: 'search', type: String, required: false }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Query)('status')),
+    __param(2, (0, common_1.Query)('priority')),
+    __param(3, (0, common_1.Query)('search')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, String, String, String]),
     __metadata("design:returntype", Promise)
 ], TasksController.prototype, "findAll", null);
 __decorate([
@@ -58,6 +71,15 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], TasksController.prototype, "getStats", null);
+__decorate([
+    (0, common_1.Get)('export'),
+    (0, swagger_1.ApiOperation)({ summary: 'Export all tasks as JSON file' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], TasksController.prototype, "export", null);
 __decorate([
     (0, common_1.Post)(),
     (0, swagger_1.ApiOperation)({ summary: 'Create a new task' }),

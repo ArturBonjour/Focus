@@ -10,12 +10,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateHabitDto = void 0;
+const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
 class CreateHabitDto {
     name;
 }
 exports.CreateHabitDto = CreateHabitDto;
 __decorate([
+    (0, swagger_1.ApiProperty)({ example: 'Morning exercise', maxLength: 120 }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(120),
     __metadata("design:type", String)

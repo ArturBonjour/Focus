@@ -18,6 +18,29 @@ export interface RecommendationPayload {
   };
 }
 
+export interface AnalyticsSummary {
+  tasks: {
+    total: number;
+    done: number;
+    inProgress: number;
+    todo: number;
+    overdue: number;
+    completionRate: number;
+    avgCompletionDays: number | null;
+  };
+  habits: {
+    total: number;
+    totalStreakDays: number;
+    longestStreak: number;
+    avgStreak: number;
+  };
+  productivity: {
+    bestDayOfWeek: string | null;
+    avgDailyCompleted: number;
+    peakHour: string | null;
+  };
+}
+
 @Injectable()
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -28,6 +51,113 @@ export class AnalyticsService {
 
   async getMonthly(userId: string): Promise<ProductivityPoint[]> {
     return this.getForPeriod(userId, 30);
+  }
+
+  async getSummary(userId: string): Promise<AnalyticsSummary> {
+    const [tasks, habits] = await Promise.all([
+      this.prisma.task.findMany({
+        where: { userId },
+        select: {
+          status: true,
+          priority: true,
+          deadline: true,
+          createdAt: true,
+          completedAt: true,
+        },
+      }),
+      this.prisma.habit.findMany({
+        where: { userId },
+        select: { streak: true, completedDays: true },
+      }),
+    ]);
+
+    const now = new Date();
+
+    // Task metrics
+    const total = tasks.length;
+    const done = tasks.filter((t) => t.status === 'DONE').length;
+    const inProgress = tasks.filter((t) => t.status === 'IN_PROGRESS').length;
+    const todo = tasks.filter((t) => t.status === 'TODO').length;
+    const overdue = tasks.filter(
+      (t) => t.deadline && t.deadline < now && t.status !== 'DONE',
+    ).length;
+    const completionRate = total > 0 ? Math.round((done / total) * 100) : 0;
+
+    // Average completion time (days from created to completed)
+    const completedWithBothDates = tasks.filter(
+      (t) => t.status === 'DONE' && t.completedAt,
+    );
+    const avgCompletionDays =
+      completedWithBothDates.length > 0
+        ? Math.round(
+            completedWithBothDates.reduce(
+              (acc, t) =>
+                acc +
+                (t.completedAt!.getTime() - t.createdAt.getTime()) / 86_400_000,
+              0,
+            ) / completedWithBothDates.length,
+          )
+        : null;
+
+    // Habit metrics
+    const habitStreaks = habits.map((h) => h.streak);
+    const totalStreakDays = habitStreaks.reduce((a, b) => a + b, 0);
+    const longestStreak =
+      habitStreaks.length > 0 ? Math.max(...habitStreaks) : 0;
+    const avgStreak =
+      habits.length > 0 ? Math.round(totalStreakDays / habits.length) : 0;
+
+    // Productivity patterns — best day of week
+    const dayBuckets = Array(7).fill(0) as number[];
+    const doneTasks = tasks.filter((t) => t.completedAt);
+    doneTasks.forEach((t) => {
+      dayBuckets[t.completedAt!.getDay()] += 1;
+    });
+    const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+    const bestDayIndex = dayBuckets.indexOf(Math.max(...dayBuckets));
+    const bestDayOfWeek = doneTasks.length > 0 ? dayNames[bestDayIndex] : null;
+
+    // Avg daily completed (last 30 days)
+    const thirtyDaysAgo = new Date(now);
+    thirtyDaysAgo.setDate(now.getDate() - 30);
+    const recentDone = tasks.filter(
+      (t) => t.completedAt && t.completedAt >= thirtyDaysAgo,
+    ).length;
+    const avgDailyCompleted = Math.round((recentDone / 30) * 10) / 10;
+
+    // Peak hour
+    const hourBuckets = Array(24).fill(0) as number[];
+    doneTasks.forEach((t) => {
+      hourBuckets[t.completedAt!.getHours()] += 1;
+    });
+    const peakHourIndex = hourBuckets.indexOf(Math.max(...hourBuckets));
+    const peakHour =
+      doneTasks.length > 0
+        ? `${peakHourIndex}:00–${peakHourIndex + 1}:00`
+        : null;
+
+    return {
+      tasks: {
+        total,
+        done,
+        inProgress,
+        todo,
+        overdue,
+        completionRate,
+        avgCompletionDays,
+      },
+      habits: {
+        total: habits.length,
+        totalStreakDays,
+        longestStreak,
+        avgStreak,
+      },
+      productivity: {
+        bestDayOfWeek,
+        avgDailyCompleted,
+        peakHour,
+      },
+    };
   }
 
   async getRecommendations(userId: string): Promise<RecommendationPayload> {
@@ -47,12 +177,7 @@ export class AnalyticsService {
       };
     }
 
-    const buckets = {
-      morning: 0,
-      afternoon: 0,
-      evening: 0,
-      night: 0,
-    };
+    const buckets = { morning: 0, afternoon: 0, evening: 0, night: 0 };
 
     tasks.forEach((task) => {
       const hour = task.completedAt?.getHours() ?? 0;
@@ -94,16 +219,8 @@ export class AnalyticsService {
     start.setHours(0, 0, 0, 0);
 
     const tasks = await this.prisma.task.findMany({
-      where: {
-        userId,
-        createdAt: {
-          gte: start,
-        },
-      },
-      select: {
-        createdAt: true,
-        status: true,
-      },
+      where: { userId, createdAt: { gte: start } },
+      select: { createdAt: true, status: true },
     });
 
     const map = new Map<string, ProductivityPoint>();
@@ -111,16 +228,17 @@ export class AnalyticsService {
       const date = new Date(start);
       date.setDate(start.getDate() + i);
       const key = date.toISOString().slice(0, 10);
-      map.set(key, { date: key, completedTasksCount: 0, totalTasksCount: 0 });
+      map.set(key, {
+        date: key,
+        completedTasksCount: 0,
+        totalTasksCount: 0,
+      });
     }
 
     tasks.forEach((task) => {
       const key = task.createdAt.toISOString().slice(0, 10);
       const point = map.get(key);
-      if (!point) {
-        return;
-      }
-
+      if (!point) return;
       point.totalTasksCount += 1;
       if (task.status === TaskStatus.DONE) {
         point.completedTasksCount += 1;

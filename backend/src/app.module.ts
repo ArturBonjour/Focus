@@ -11,6 +11,7 @@ import { TasksModule } from './tasks/tasks.module';
 import { HabitsModule } from './habits/habits.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { TelegramModule } from './telegram/telegram.module';
+import { SchedulerModule } from './scheduler/scheduler.module';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 
 @Module({
@@ -24,6 +25,7 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
     HabitsModule,
     AnalyticsModule,
     TelegramModule,
+    SchedulerModule,
   ],
   controllers: [AppController],
   providers: [
