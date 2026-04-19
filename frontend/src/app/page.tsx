@@ -2,7 +2,7 @@ import { Sidebar } from '@/components/sidebar';
 import { StatCard } from '@/components/stat-card';
 import { ProductivityChart } from '@/components/productivity-chart';
 import { TaskFilterBar } from '@/components/task-filter-bar';
-import { HabitCard } from '@/components/habit-card';
+import { HabitListManager } from '@/components/habit-list-manager';
 import { ActivityHeatmap } from '@/components/activity-heatmap';
 import { FocusTimer } from '@/components/focus-timer';
 import { DonutChart } from '@/components/donut-chart';
@@ -11,6 +11,8 @@ import { CommandPalette } from '@/components/command-palette';
 import { ToastProvider } from '@/components/toast';
 import { WelcomeBanner } from '@/components/welcome-banner';
 import { DailyGoalWidget } from '@/components/daily-goal-widget';
+import { WeeklyTrendsCard } from '@/components/weekly-trends-card';
+import { GlobalKeyShortcuts } from '@/components/global-key-shortcuts';
 import { getDashboardData } from '@/lib/api';
 
 interface HomeProps {
@@ -72,6 +74,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <Sidebar />
       <ToastProvider />
       <CommandPalette tasks={data.tasks} habits={data.habits} />
+      <GlobalKeyShortcuts />
 
       <main className="main-content" style={{ flex: 1, position: 'relative', zIndex: 1 }}>
         {/* ── Header ── */}
@@ -211,23 +214,13 @@ export default async function Home({ searchParams }: HomeProps) {
 
           {/* Habits */}
           <div className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '200ms' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <div>
-                <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem' }}>Привычки</h2>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 1 }}>Нажмите ✓ чтобы отметить сегодня</p>
-              </div>
-              <span style={{ fontSize: '0.72rem', background: 'rgba(245,158,11,0.10)', borderRadius: 999, padding: '2px 10px', fontWeight: 600, color: '#d97706' }}>
-                🔥 {totalStreak}д
-              </span>
-            </div>
-            <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {data.habits.map((habit) => (
-                <div key={habit.id} className="animate-slide-up">
-                  <HabitCard habit={habit} apiUrl={apiUrl} token={token} />
-                </div>
-              ))}
-            </div>
+            <HabitListManager habits={data.habits} apiUrl={apiUrl} token={token} />
           </div>
+        </section>
+
+        {/* ── Weekly Trends ── */}
+        <section style={{ marginBottom: 14 }}>
+          <WeeklyTrendsCard apiUrl={apiUrl} token={token} />
         </section>
 
         {/* ── Activity Heatmap ── */}
@@ -296,9 +289,10 @@ export default async function Home({ searchParams }: HomeProps) {
 
         {/* ── Footer ── */}
         <footer style={{ textAlign: 'center', padding: '12px 0 4px', color: 'var(--text-tertiary)', fontSize: '0.72rem' }}>
-          NeuroTrack · AI Productivity System · v4.0
+          NeuroTrack · AI Productivity System · v5.0
           <span style={{ marginLeft: 12 }}>
-            <kbd style={{ fontFamily: 'monospace', fontSize: '0.62rem', background: 'var(--border)', borderRadius: 4, padding: '1px 5px', color: 'var(--text-tertiary)' }}>⌘K</kbd> для быстрого доступа
+            <kbd style={{ fontFamily: 'monospace', fontSize: '0.62rem', background: 'var(--border)', borderRadius: 4, padding: '1px 5px', color: 'var(--text-tertiary)' }}>⌘K</kbd> поиск ·&nbsp;
+            <kbd style={{ fontFamily: 'monospace', fontSize: '0.62rem', background: 'var(--border)', borderRadius: 4, padding: '1px 5px', color: 'var(--text-tertiary)' }}>N</kbd> новая задача
           </span>
         </footer>
       </main>

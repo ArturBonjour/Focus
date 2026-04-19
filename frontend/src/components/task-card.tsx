@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { Task } from '@/lib/api';
 import { toast } from './toast';
+import { ConfettiBurst } from './confetti';
 
 const priorityColors: Record<Task['priority'], string> = {
   HIGH: '#ef4444',
@@ -42,6 +43,7 @@ export function TaskCard({ task, apiUrl, token, onDelete, onDuplicate }: TaskCar
   const [status, setStatus] = useState<Task['status']>(task.status);
   const [loading, setLoading] = useState<'status' | 'delete' | 'duplicate' | null>(null);
   const [deleted, setDeleted] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const isOverdue = task.deadline && new Date(task.deadline) < new Date() && status !== 'DONE';
 
@@ -52,6 +54,10 @@ export function TaskCard({ task, apiUrl, token, onDelete, onDuplicate }: TaskCar
     const prev = status;
     setStatus(next);
     setLoading('status');
+    if (next === 'DONE') {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 900);
+    }
 
     try {
       if (!token || !apiUrl) {
@@ -60,7 +66,7 @@ export function TaskCard({ task, apiUrl, token, onDelete, onDuplicate }: TaskCar
         else toast.info(`Статус: ${statusLabel[next]}`, task.title);
         return;
       }
-      const res = await fetch(`${apiUrl}/tasks/${task.id}/status`, {
+      const res = await fetch(`${apiUrl}/tasks/${task.id}`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -73,6 +79,7 @@ export function TaskCard({ task, apiUrl, token, onDelete, onDuplicate }: TaskCar
       else toast.info(`Статус: ${statusLabel[next]}`, task.title);
     } catch {
       setStatus(prev);
+      setShowConfetti(false);
       toast.error('Не удалось обновить статус');
     } finally {
       setLoading(null);
@@ -154,6 +161,9 @@ export function TaskCard({ task, apiUrl, token, onDelete, onDuplicate }: TaskCar
         (e.currentTarget as HTMLDivElement).style.transform = 'translateX(0)';
       }}
     >
+      {/* Confetti on DONE */}
+      <ConfettiBurst active={showConfetti} count={20} />
+
       {/* Priority bar */}
       <div style={{
         width: 3, borderRadius: 3, alignSelf: 'stretch', flexShrink: 0,

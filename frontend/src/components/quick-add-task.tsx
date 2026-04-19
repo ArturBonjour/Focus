@@ -182,6 +182,7 @@ export function QuickAddTask({ apiUrl, token, onCreated }: QuickAddTaskProps) {
       <button
         onClick={() => setOpen(true)}
         className="btn btn-primary"
+        data-shortcut="new-task"
         style={{ gap: 6, padding: '7px 14px', fontSize: '0.82rem' }}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

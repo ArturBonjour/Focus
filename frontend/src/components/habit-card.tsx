@@ -24,14 +24,17 @@ interface HabitCardProps {
   habit: Habit;
   apiUrl?: string;
   token?: string;
+  onDelete?: (id: string) => void;
 }
 
-export function HabitCard({ habit, apiUrl, token }: HabitCardProps) {
+export function HabitCard({ habit, apiUrl, token, onDelete }: HabitCardProps) {
   const [completedDays, setCompletedDays] = useState<string[]>(
     habit.completedDays,
   );
   const [streak, setStreak] = useState(habit.streak);
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleted, setDeleted] = useState(false);
 
   const today = new Date().toISOString().slice(0, 10);
   const isToday = completedDays.includes(today);
@@ -109,6 +112,34 @@ export function HabitCard({ habit, apiUrl, token }: HabitCardProps) {
     }
   }
 
+  async function handleDelete() {
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      if (!token || !apiUrl) {
+        await new Promise((r) => setTimeout(r, 200));
+        setDeleted(true);
+        toast.info('Привычка удалена', habit.name);
+        onDelete?.(habit.id);
+        return;
+      }
+      const res = await fetch(`${apiUrl}/habits/${habit.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed');
+      setDeleted(true);
+      toast.info('Привычка удалена', habit.name);
+      onDelete?.(habit.id);
+    } catch {
+      toast.error('Не удалось удалить привычку');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  if (deleted) return null;
+
   return (
     <div
       style={{
@@ -133,8 +164,7 @@ export function HabitCard({ habit, apiUrl, token }: HabitCardProps) {
           style={{
             position: 'absolute',
             inset: 0,
-            background:
-              'linear-gradient(135deg, rgba(16,185,129,0.05) 0%, transparent 60%)',
+            background: 'linear-gradient(135deg, rgba(16,185,129,0.05) 0%, transparent 60%)',
             pointerEvents: 'none',
           }}
         />
@@ -150,86 +180,72 @@ export function HabitCard({ habit, apiUrl, token }: HabitCardProps) {
         }}
       >
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p
-            style={{
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-              fontSize: '0.875rem',
-              lineHeight: 1.3,
-            }}
-          >
+          <p style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.875rem', lineHeight: 1.3 }}>
             {habit.name}
           </p>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              marginTop: 3,
-            }}
-          >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 3 }}>
             <span style={{ fontSize: '0.85rem' }}>🔥</span>
-            <span
-              style={{
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                color: streak > 0 ? '#f59e0b' : 'var(--text-tertiary)',
-              }}
-            >
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: streak > 0 ? '#f59e0b' : 'var(--text-tertiary)' }}>
               {streak}
             </span>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
-              дней подряд
-            </span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>дней подряд</span>
           </div>
         </div>
 
-        {/* Track / untrack button */}
-        <button
-          onClick={() => { void toggle(); }}
-          disabled={loading}
-          title={isToday ? 'Снять отметку' : 'Отметить сегодня'}
-          style={{
-            width: 34,
-            height: 34,
-            borderRadius: '50%',
-            border: `2px solid ${isToday ? '#10b981' : 'var(--border-strong)'}`,
-            background: isToday
-              ? 'linear-gradient(135deg, #10b981, #059669)'
-              : 'transparent',
-            cursor: loading ? 'default' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s var(--ease-spring)',
-            flexShrink: 0,
-            boxShadow: isToday ? '0 2px 8px rgba(16,185,129,0.35)' : 'none',
-            opacity: loading ? 0.6 : 1,
-          }}
-        >
-          {loading ? (
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>•</span>
-          ) : isToday ? (
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path
-                d="M2.5 7l3 3 6-6"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          ) : (
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path
-                d="M7 3v8M3 7h8"
-                stroke="var(--text-tertiary)"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-            </svg>
-          )}
-        </button>
+        <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+          {/* Delete button */}
+          <button
+            onClick={() => { void handleDelete(); }}
+            disabled={deleting}
+            title="Удалить привычку"
+            style={{
+              width: 26, height: 26, borderRadius: 7,
+              border: '1px solid var(--border)',
+              background: 'transparent',
+              cursor: deleting ? 'default' : 'pointer',
+              fontSize: '0.65rem', color: 'var(--text-tertiary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.1s',
+              opacity: deleting ? 0.4 : 1,
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#ef4444'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#ef4444'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-tertiary)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; }}
+          >
+            ✕
+          </button>
+
+          {/* Track / untrack button */}
+          <button
+            onClick={() => { void toggle(); }}
+            disabled={loading}
+            title={isToday ? 'Снять отметку' : 'Отметить сегодня'}
+            style={{
+              width: 34, height: 34, borderRadius: '50%',
+              border: `2px solid ${isToday ? '#10b981' : 'var(--border-strong)'}`,
+              background: isToday
+                ? 'linear-gradient(135deg, #10b981, #059669)'
+                : 'transparent',
+              cursor: loading ? 'default' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.2s var(--ease-spring)',
+              flexShrink: 0,
+              boxShadow: isToday ? '0 2px 8px rgba(16,185,129,0.35)' : 'none',
+              opacity: loading ? 0.6 : 1,
+            }}
+          >
+            {loading ? (
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>•</span>
+            ) : isToday ? (
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M2.5 7l3 3 6-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M7 3v8M3 7h8" stroke="var(--text-tertiary)" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Week grid Mon–Sun */}
@@ -241,52 +257,30 @@ export function HabitCard({ habit, apiUrl, token }: HabitCardProps) {
           return (
             <div
               key={day}
-              style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 3,
-              }}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}
             >
-              <span
-                style={{
-                  fontSize: '0.58rem',
-                  color: isTod ? 'var(--accent-1)' : 'var(--text-tertiary)',
-                  fontWeight: isTod ? 700 : 400,
-                }}
-              >
+              <span style={{
+                fontSize: '0.58rem',
+                color: isTod ? 'var(--accent-1)' : 'var(--text-tertiary)',
+                fontWeight: isTod ? 700 : 400,
+              }}>
                 {DOW_LABELS[i]}
               </span>
-              <div
-                style={{
-                  width: '100%',
-                  height: 18,
-                  borderRadius: 4,
-                  background: isFuture
-                    ? 'var(--border)'
-                    : done
-                      ? 'linear-gradient(135deg, #10b981, #059669)'
-                      : 'rgba(239,68,68,0.12)',
-                  opacity: isFuture ? 0.35 : 1,
-                  border: isTod
-                    ? '1.5px solid var(--accent-1)'
-                    : '1.5px solid transparent',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'background 0.2s var(--ease)',
-                }}
-              >
+              <div style={{
+                width: '100%', height: 18, borderRadius: 4,
+                background: isFuture
+                  ? 'var(--border)'
+                  : done
+                    ? 'linear-gradient(135deg, #10b981, #059669)'
+                    : 'rgba(239,68,68,0.12)',
+                opacity: isFuture ? 0.35 : 1,
+                border: isTod ? '1.5px solid var(--accent-1)' : '1.5px solid transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'background 0.2s var(--ease)',
+              }}>
                 {done && !isFuture && (
                   <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
-                    <path
-                      d="M1.5 5l3 3 4-5"
-                      stroke="white"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                    <path d="M1.5 5l3 3 4-5" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}
               </div>

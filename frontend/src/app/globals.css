@@ -406,3 +406,79 @@ body {
 .habit-done-pulse {
   animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
 }
+
+/* ─── Wave 5: Confetti particles ─────────────────────────────────── */
+@keyframes confetti-fall {
+  0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(80px) rotate(720deg); opacity: 0; }
+}
+@keyframes confetti-spread {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx, 20px), var(--ty, 40px)) scale(0); opacity: 0; }
+}
+.confetti-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  pointer-events: none;
+  animation: confetti-spread 0.7s var(--ease) forwards;
+}
+
+/* ─── Wave 5: keyboard shortcut kbd style ────────────────────────── */
+.shortcut-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+}
+.shortcut-hint kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  padding: 1px 5px;
+  font-family: -apple-system, monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  box-shadow: 0 1px 0 var(--border-strong);
+  min-width: 16px;
+  text-align: center;
+}
+
+/* ─── Wave 5: Sidebar nav badge ──────────────────────────────────── */
+.nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ef4444;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  min-width: 16px;
+  line-height: 14px;
+  animation: scale-in 0.2s var(--ease-spring) both;
+}
+
+/* ─── Wave 5: Input focus with gradient border ───────────────────── */
+.input-focus-glow:focus {
+  border-color: var(--accent-1) !important;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+}
+
+/* ─── Wave 5: Task completion celebration ────────────────────────── */
+@keyframes celebrate-pop {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.18); }
+  60%  { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+.celebrate-pop {
+  animation: celebrate-pop 0.4s var(--ease-spring) forwards;
+}
