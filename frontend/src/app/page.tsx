@@ -4,6 +4,7 @@ import { ProductivityChart } from '@/components/productivity-chart';
 import { TaskFilterBar } from '@/components/task-filter-bar';
 import { HabitListManager } from '@/components/habit-list-manager';
 import { ActivityHeatmap } from '@/components/activity-heatmap';
+import { YearlyHeatmap } from '@/components/yearly-heatmap';
 import { FocusTimer } from '@/components/focus-timer';
 import { DonutChart } from '@/components/donut-chart';
 import { QuickAddTask } from '@/components/quick-add-task';
@@ -12,6 +13,7 @@ import { ToastProvider } from '@/components/toast';
 import { WelcomeBanner } from '@/components/welcome-banner';
 import { DailyGoalWidget } from '@/components/daily-goal-widget';
 import { WeeklyTrendsCard } from '@/components/weekly-trends-card';
+import { AnalyticsSummaryCard } from '@/components/analytics-summary-card';
 import { GlobalKeyShortcuts } from '@/components/global-key-shortcuts';
 import { getDashboardData } from '@/lib/api';
 
@@ -114,7 +116,7 @@ export default async function Home({ searchParams }: HomeProps) {
               {data.mode === 'demo' && (
                 <div className="card animate-scale-in" style={{ padding: '6px 12px', borderRadius: 10 }}>
                   <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-                    💡 <code style={{ fontFamily: 'monospace', background: 'var(--border)', padding: '1px 5px', borderRadius: 4, color: 'var(--accent-1)' }}>?token=JWT</code>
+                    💡 <a href="/login" style={{ color: 'var(--accent-1)', textDecoration: 'none', fontWeight: 600 }}>Войти</a> для работы с реальными данными
                   </p>
                 </div>
               )}
@@ -195,7 +197,7 @@ export default async function Home({ searchParams }: HomeProps) {
         </section>
 
         {/* ── Tasks + Habits ── */}
-        <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+        <section id="tasks-section" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
           {/* Tasks */}
           <div className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '160ms' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
@@ -213,7 +215,7 @@ export default async function Home({ searchParams }: HomeProps) {
           </div>
 
           {/* Habits */}
-          <div className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '200ms' }}>
+          <div id="habits-section" className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '200ms' }}>
             <HabitListManager habits={data.habits} apiUrl={apiUrl} token={token} />
           </div>
         </section>
@@ -223,10 +225,13 @@ export default async function Home({ searchParams }: HomeProps) {
           <WeeklyTrendsCard apiUrl={apiUrl} token={token} />
         </section>
 
-        {/* ── Activity Heatmap ── */}
+        {/* ── Annual Activity Heatmap ── */}
+        <YearlyHeatmap apiUrl={apiUrl} token={token} />
+
+        {/* ── Per-habit Heatmap ── */}
         {data.habits.length > 0 && (
           <section id="heatmap-section" className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '240ms', marginBottom: 14 }}>
-            <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem', marginBottom: 2 }}>История активности</h2>
+            <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem', marginBottom: 2 }}>История привычек</h2>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: 16 }}>
               Выполнение привычек за последние 18 недель
             </p>
@@ -238,8 +243,11 @@ export default async function Home({ searchParams }: HomeProps) {
           </section>
         )}
 
+        {/* ── Analytics Summary ── */}
+        <AnalyticsSummaryCard apiUrl={apiUrl} token={token} />
+
         {/* ── AI Recommendations ── */}
-        <section id="ai-section" className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '280ms', marginBottom: 14 }}>
+        <section id="ai-recs" className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '280ms', marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
             <div style={{
               width: 34, height: 34, borderRadius: 10,
@@ -289,7 +297,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
         {/* ── Footer ── */}
         <footer style={{ textAlign: 'center', padding: '12px 0 4px', color: 'var(--text-tertiary)', fontSize: '0.72rem' }}>
-          NeuroTrack · AI Productivity System · v5.0
+          NeuroTrack · AI Productivity System · v6.0
           <span style={{ marginLeft: 12 }}>
             <kbd style={{ fontFamily: 'monospace', fontSize: '0.62rem', background: 'var(--border)', borderRadius: 4, padding: '1px 5px', color: 'var(--text-tertiary)' }}>⌘K</kbd> поиск ·&nbsp;
             <kbd style={{ fontFamily: 'monospace', fontSize: '0.62rem', background: 'var(--border)', borderRadius: 4, padding: '1px 5px', color: 'var(--text-tertiary)' }}>N</kbd> новая задача

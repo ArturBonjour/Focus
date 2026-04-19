@@ -3,11 +3,6 @@
 import { useState } from 'react';
 import { ThemeToggle } from './theme-toggle';
 
-interface NavItem {
-  icon: React.ReactNode;
-  label: string;
-  active?: boolean;
-}
 
 function IconChart() {
   return (
@@ -51,12 +46,12 @@ function IconBrain() {
 export function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const navItems: NavItem[] = [
-    { icon: <IconChart />, label: 'Дашборд', active: true },
-    { icon: <IconTasks />, label: 'Задачи' },
-    { icon: <IconHabits />, label: 'Привычки' },
-    { icon: <IconTimer />, label: 'Focus Timer' },
-    { icon: <IconBrain />, label: 'AI Инсайты' },
+  const navItems: { icon: React.ReactNode; label: string; href: string; active?: boolean }[] = [
+    { icon: <IconChart />, label: 'Дашборд', href: '#', active: true },
+    { icon: <IconTasks />, label: 'Задачи', href: '#tasks-section' },
+    { icon: <IconHabits />, label: 'Привычки', href: '#habits-section' },
+    { icon: <IconTimer />, label: 'Focus Timer', href: '#focus-timer' },
+    { icon: <IconBrain />, label: 'AI Инсайты', href: '#ai-section' },
   ];
 
   return (
@@ -110,8 +105,10 @@ export function Sidebar() {
         {/* Nav */}
         <div style={{ padding: '12px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
           {navItems.map((item) => (
-            <button
+            <a
               key={item.label}
+              href={item.href}
+              onClick={() => setMobileOpen(false)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 10,
                 padding: '9px 12px',
@@ -125,17 +122,18 @@ export function Sidebar() {
                 background: item.active ? 'rgba(99,102,241,0.10)' : 'transparent',
                 color: item.active ? 'var(--accent-1)' : 'var(--text-secondary)',
                 transition: 'all 0.15s var(--ease)',
+                textDecoration: 'none',
               }}
               onMouseEnter={(e) => {
                 if (!item.active) {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'var(--border)';
-                  (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)';
+                  (e.currentTarget as HTMLAnchorElement).style.background = 'var(--border)';
+                  (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-primary)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!item.active) {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-                  (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)';
+                  (e.currentTarget as HTMLAnchorElement).style.background = 'transparent';
+                  (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)';
                 }
               }}
             >
@@ -149,13 +147,13 @@ export function Sidebar() {
                   background: 'var(--accent-1)',
                 }} />
               )}
-            </button>
+            </a>
           ))}
         </div>
 
         {/* Bottom */}
         <div style={{ padding: '12px 12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>v1.0.0</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>v6.0</span>
           <ThemeToggle />
         </div>
       </nav>

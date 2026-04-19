@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { Task } from '@/lib/api';
 import { toast } from './toast';
 import { ConfettiBurst } from './confetti';
+import { TaskEditModal } from './task-edit-modal';
 
 const priorityColors: Record<Task['priority'], string> = {
   HIGH: '#ef4444',
@@ -37,15 +38,18 @@ interface TaskCardProps {
   token?: string;
   onDelete?: (id: string) => void;
   onDuplicate?: (newTask: Task) => void;
+  onUpdate?: (updated: Task) => void;
 }
 
-export function TaskCard({ task, apiUrl, token, onDelete, onDuplicate }: TaskCardProps) {
+export function TaskCard({ task, apiUrl, token, onDelete, onDuplicate, onUpdate }: TaskCardProps) {
   const [status, setStatus] = useState<Task['status']>(task.status);
+  const [taskData, setTaskData] = useState<Task>(task);
   const [loading, setLoading] = useState<'status' | 'delete' | 'duplicate' | null>(null);
   const [deleted, setDeleted] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
-  const isOverdue = task.deadline && new Date(task.deadline) < new Date() && status !== 'DONE';
+  const isOverdue = taskData.deadline && new Date(taskData.deadline) < new Date() && status !== 'DONE';
 
   async function cycleStatus() {
     if (loading) return;
@@ -66,7 +70,7 @@ export function TaskCard({ task, apiUrl, token, onDelete, onDuplicate }: TaskCar
         else toast.info(`Статус: ${statusLabel[next]}`, task.title);
         return;
       }
-      const res = await fetch(`${apiUrl}/tasks/${task.id}`, {
+      const res = await fetch(`${apiUrl}/tasks/${task.id}/status`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -139,7 +143,21 @@ export function TaskCard({ task, apiUrl, token, onDelete, onDuplicate }: TaskCar
   if (deleted) return null;
 
   return (
-    <div
+    <>
+      {showEditModal && (
+        <TaskEditModal
+          task={taskData}
+          apiUrl={apiUrl}
+          token={token}
+          onUpdated={(updated) => {
+            setTaskData(updated);
+            setStatus(updated.status);
+            onUpdate?.(updated);
+          }}
+          onClose={() => setShowEditModal(false)}
+        />
+      )}
+      <div
       style={{
         display: 'flex', gap: 12, alignItems: 'flex-start',
         padding: '12px 14px',
@@ -167,7 +185,7 @@ export function TaskCard({ task, apiUrl, token, onDelete, onDuplicate }: TaskCar
       {/* Priority bar */}
       <div style={{
         width: 3, borderRadius: 3, alignSelf: 'stretch', flexShrink: 0,
-        background: priorityColors[task.priority],
+        background: priorityColors[taskData.priority],
         transition: 'opacity 0.2s',
         opacity: status === 'DONE' ? 0.4 : 1,
       }} />
@@ -183,7 +201,7 @@ export function TaskCard({ task, apiUrl, token, onDelete, onDuplicate }: TaskCar
             flex: 1,
             lineHeight: 1.35,
           }}>
-            {task.title}
+            {taskData.title}
           </p>
 
           {/* Clickable status badge */}
@@ -205,17 +223,37 @@ export function TaskCard({ task, apiUrl, token, onDelete, onDuplicate }: TaskCar
 
         <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>
-            <span style={{ color: priorityColors[task.priority], fontWeight: 600 }}>{priorityLabel[task.priority]}</span>
+            <span style={{ color: priorityColors[taskData.priority], fontWeight: 600 }}>{priorityLabel[taskData.priority]}</span>
           </span>
-          {task.deadline && (
+          {taskData.deadline && (
             <span style={{ fontSize: '0.72rem', color: isOverdue ? '#ef4444' : 'var(--text-tertiary)', fontWeight: isOverdue ? 600 : 400 }}>
-              📅 {new Date(task.deadline).toLocaleDateString('ru', { day: 'numeric', month: 'short' })}
+              📅 {new Date(taskData.deadline).toLocaleDateString('ru', { day: 'numeric', month: 'short' })}
               {isOverdue && ' · просрочено'}
             </span>
           )}
 
           {/* Action buttons — appear on the right */}
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
+            {/* Edit */}
+            <button
+              onClick={() => setShowEditModal(true)}
+              disabled={!!loading}
+              title="Редактировать задачу"
+              style={{
+                width: 22, height: 22, borderRadius: 6,
+                border: '1px solid var(--border)',
+                background: 'transparent',
+                cursor: loading ? 'default' : 'pointer',
+                fontSize: '0.68rem', lineHeight: 1,
+                color: 'var(--text-tertiary)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.1s',
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#8b5cf6'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#8b5cf6'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-tertiary)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; }}
+            >
+              ✏
+            </button>
             {/* Duplicate */}
             <button
               onClick={() => { void handleDuplicate(); }}
@@ -262,5 +300,6 @@ export function TaskCard({ task, apiUrl, token, onDelete, onDuplicate }: TaskCar
         </div>
       </div>
     </div>
+    </>
   );
 }
