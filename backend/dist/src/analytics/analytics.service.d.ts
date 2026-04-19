@@ -42,6 +42,7 @@ export declare class AnalyticsService {
     getMonthly(userId: string): Promise<ProductivityPoint[]>;
     getSummary(userId: string): Promise<AnalyticsSummary>;
     getRecommendations(userId: string): Promise<RecommendationPayload>;
+    getHeatmap(userId: string): Promise<HeatmapDay[]>;
     private getForPeriod;
     getTrends(userId: string): Promise<TrendsPayload>;
 }
@@ -62,4 +63,10 @@ export interface TrendsPayload {
         changePercent: number;
     };
     trend: 'up' | 'down' | 'neutral';
+}
+export interface HeatmapDay {
+    date: string;
+    count: number;
+    tasksDone: number;
+    habitsDone: number;
 }

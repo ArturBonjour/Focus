@@ -38,6 +38,9 @@ let AnalyticsController = class AnalyticsController {
     getTrends(user) {
         return this.analyticsService.getTrends(user.sub);
     }
+    getHeatmap(user) {
+        return this.analyticsService.getHeatmap(user.sub);
+    }
 };
 exports.AnalyticsController = AnalyticsController;
 __decorate([
@@ -80,6 +83,16 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "getTrends", null);
+__decorate([
+    (0, common_1.Get)('heatmap'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Full-year GitHub-style activity heatmap (tasks + habits)',
+    }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AnalyticsController.prototype, "getHeatmap", null);
 exports.AnalyticsController = AnalyticsController = __decorate([
     (0, swagger_1.ApiTags)('analytics'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

@@ -6,6 +6,7 @@ import type { JwtPayload } from '../auth/strategies/jwt.strategy';
 import {
   AnalyticsService,
   AnalyticsSummary,
+  HeatmapDay,
   ProductivityPoint,
   RecommendationPayload,
   TrendsPayload,
@@ -47,5 +48,13 @@ export class AnalyticsController {
   @ApiOperation({ summary: 'Week-over-week trends comparison' })
   getTrends(@CurrentUser() user: JwtPayload): Promise<TrendsPayload> {
     return this.analyticsService.getTrends(user.sub);
+  }
+
+  @Get('heatmap')
+  @ApiOperation({
+    summary: 'Full-year GitHub-style activity heatmap (tasks + habits)',
+  })
+  getHeatmap(@CurrentUser() user: JwtPayload): Promise<HeatmapDay[]> {
+    return this.analyticsService.getHeatmap(user.sub);
   }
 }

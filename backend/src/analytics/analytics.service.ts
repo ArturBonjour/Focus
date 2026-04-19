@@ -159,23 +159,35 @@ export class AnalyticsService {
   }
 
   async getRecommendations(userId: string): Promise<RecommendationPayload> {
-    const tasks = await this.prisma.task.findMany({
-      where: { userId, status: TaskStatus.DONE, completedAt: { not: null } },
-      select: { completedAt: true },
-      orderBy: { completedAt: 'desc' },
-      take: 300,
-    });
+    const [tasks, habits, allTasks] = await Promise.all([
+      this.prisma.task.findMany({
+        where: { userId, status: TaskStatus.DONE, completedAt: { not: null } },
+        select: { completedAt: true, createdAt: true },
+        orderBy: { completedAt: 'desc' },
+        take: 300,
+      }),
+      this.prisma.habit.findMany({
+        where: { userId },
+        select: { streak: true, completedDays: true, name: true },
+      }),
+      this.prisma.task.findMany({
+        where: { userId },
+        select: { status: true, priority: true, deadline: true },
+      }),
+    ]);
+
+    const recs: string[] = [];
+    const buckets = { morning: 0, afternoon: 0, evening: 0, night: 0 };
 
     if (tasks.length === 0) {
       return {
         recommendations: [
-          'Начните с 3 небольших задач в день для формирования ритма.',
-          'Фиксируйте время выполнения задач, чтобы система дала точные инсайты.',
+          '🌱 Начните с 3 небольших задач в день для формирования ритма работы.',
+          '📊 Фиксируйте выполнение задач — через неделю система даст точные инсайты.',
+          '⏱ Попробуйте технику Pomodoro: 25 минут фокус, 5 минут отдых.',
         ],
       };
     }
-
-    const buckets = { morning: 0, afternoon: 0, evening: 0, night: 0 };
 
     tasks.forEach((task) => {
       const hour = task.completedAt?.getHours() ?? 0;
@@ -185,26 +197,160 @@ export class AnalyticsService {
       else buckets.night += 1;
     });
 
-    const bestPeriod =
-      Object.entries(buckets).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'morning';
-    const worstPeriod =
-      Object.entries(buckets).sort((a, b) => a[1] - b[1])[0]?.[0] ?? 'night';
-
     const periodMap: Record<string, string> = {
-      morning: 'утро',
-      afternoon: 'день',
-      evening: 'вечер',
-      night: 'ночь',
+      morning: 'утро (6–12)',
+      afternoon: 'день (12–18)',
+      evening: 'вечер (18–24)',
+      night: 'ночь (0–6)',
     };
+    const periodEmoji: Record<string, string> = {
+      morning: '🌅',
+      afternoon: '☀️',
+      evening: '🌆',
+      night: '🌙',
+    };
+
+    const sorted = Object.entries(buckets).sort((a, b) => b[1] - a[1]);
+    const bestPeriod = sorted[0]?.[0] ?? 'morning';
+    const worstPeriod = sorted[sorted.length - 1]?.[0] ?? 'night';
+
+    recs.push(
+      `${periodEmoji[bestPeriod]} Пик продуктивности: ${periodMap[bestPeriod]}. Планируйте самые важные задачи именно в это время.`,
+    );
+
+    // Day-of-week analysis
+    const dayBuckets = Array(7).fill(0) as number[];
+    tasks.forEach((t) => {
+      if (t.completedAt) dayBuckets[t.completedAt.getDay()] += 1;
+    });
+    const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+    const bestDayIdx = dayBuckets.indexOf(Math.max(...dayBuckets));
+    if (dayBuckets[bestDayIdx] > 0) {
+      recs.push(
+        `📅 Лучший день недели: ${dayNames[bestDayIdx]} (${dayBuckets[bestDayIdx]} задач выполнено). Концентрируйте ключевые задачи на этот день.`,
+      );
+    }
+
+    // Low activity period recommendation
+    if (buckets[worstPeriod as keyof typeof buckets] < tasks.length * 0.1) {
+      recs.push(
+        `⚡ Низкая активность в период ${periodMap[worstPeriod]}. Используйте это время для лёгких задач: email, чтение, планирование.`,
+      );
+    }
+
+    // Overdue tasks warning
+    const now = new Date();
+    const overdue = allTasks.filter(
+      (t) => t.deadline && t.deadline < now && t.status !== TaskStatus.DONE,
+    ).length;
+    if (overdue > 0) {
+      recs.push(
+        `⚠️ ${overdue} задач${overdue > 1 ? 'и' : 'а'} просрочен${overdue > 1 ? 'о' : 'а'}. Разберитесь с ними первыми или перенесите дедлайн — это снизит стресс.`,
+      );
+    }
+
+    // High priority tasks in backlog
+    const highPrioTodo = allTasks.filter(
+      (t) => t.priority === 'HIGH' && t.status === TaskStatus.TODO,
+    ).length;
+    if (highPrioTodo > 0) {
+      recs.push(
+        `🔴 ${highPrioTodo} задач высокого приоритета ждёт начала. Возьмите одну в работу прямо сейчас.`,
+      );
+    }
+
+    // Habit streak advice
+    const bestHabit = habits.sort((a, b) => b.streak - a.streak)[0];
+    if (bestHabit && bestHabit.streak >= 7) {
+      recs.push(
+        `🔥 Ваш лучший streak по привычке "${bestHabit.name}": ${bestHabit.streak} дней! Продолжайте — через ${21 - bestHabit.streak > 0 ? 21 - bestHabit.streak : 0} дней привычка станет автоматической.`,
+      );
+    }
+
+    // Completion velocity
+    const recent7 = tasks.filter((t) => {
+      if (!t.completedAt) return false;
+      const diff = (now.getTime() - t.completedAt.getTime()) / 86_400_000;
+      return diff <= 7;
+    }).length;
+    const dailyRate = Math.round((recent7 / 7) * 10) / 10;
+    if (dailyRate > 0) {
+      recs.push(
+        `📈 Средний темп: ${dailyRate} задач/день за последнюю неделю. ${dailyRate >= 3 ? 'Отличный ритм!' : 'Постарайтесь добавить ещё 1–2 задачи в день.'}`,
+      );
+    }
+
+    // Pomodoro generic tip
+    recs.push(
+      '⏱ Правило 52/17: работайте 52 минуты, отдыхайте 17 — это оптимально для глубокого фокуса по данным исследований.',
+    );
 
     return {
-      recommendations: [
-        `Лучшее окно фокуса: ${periodMap[bestPeriod]}. Планируйте сложные задачи именно туда.`,
-        `Низкая активность в период: ${periodMap[worstPeriod]}. Переносите рутинные задачи в это время.`,
-        'Используйте правило 50/10: 50 минут фокус-работы + 10 минут восстановления.',
-      ],
+      recommendations: recs.slice(0, 6),
       activityBuckets: buckets,
     };
+  }
+
+  async getHeatmap(userId: string): Promise<HeatmapDay[]> {
+    const days = 365;
+    const now = new Date();
+    const start = new Date(now);
+    start.setDate(now.getDate() - (days - 1));
+    start.setHours(0, 0, 0, 0);
+
+    const toDateStr = (d: Date) => d.toISOString().slice(0, 10);
+
+    // Build day map
+    const map = new Map<string, HeatmapDay>();
+    for (let i = 0; i < days; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      const key = toDateStr(d);
+      map.set(key, { date: key, count: 0, tasksDone: 0, habitsDone: 0 });
+    }
+
+    // Completed tasks
+    const doneTasks = await this.prisma.task.findMany({
+      where: {
+        userId,
+        status: TaskStatus.DONE,
+        completedAt: { gte: start },
+      },
+      select: { completedAt: true },
+    });
+    doneTasks.forEach((t) => {
+      if (!t.completedAt) return;
+      const key = toDateStr(t.completedAt);
+      const day = map.get(key);
+      if (day) {
+        day.tasksDone += 1;
+        day.count += 1;
+      }
+    });
+
+    // Habit completions
+    const habits = await this.prisma.habit.findMany({
+      where: { userId },
+      select: { completedDays: true },
+    });
+    habits.forEach((h) => {
+      const completedDays = Array.isArray(h.completedDays)
+        ? (h.completedDays as unknown[]).filter(
+            (d): d is string => typeof d === 'string',
+          )
+        : [];
+      completedDays.forEach((dateStr) => {
+        if (dateStr >= toDateStr(start)) {
+          const day = map.get(dateStr);
+          if (day) {
+            day.habitsDone += 1;
+            day.count += 1;
+          }
+        }
+      });
+    });
+
+    return [...map.values()];
   }
 
   private async getForPeriod(
@@ -348,4 +494,11 @@ export interface TrendsPayload {
     changePercent: number;
   };
   trend: 'up' | 'down' | 'neutral';
+}
+
+export interface HeatmapDay {
+  date: string; // YYYY-MM-DD
+  count: number; // 0–5+ (tasks done + habit checks, capped for colour scale)
+  tasksDone: number;
+  habitsDone: number;
 }
