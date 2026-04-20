@@ -65,6 +65,7 @@ let AuthService = class AuthService {
         const passwordHash = await bcrypt.hash(dto.password, 10);
         const user = await this.usersService.createUser({
             email: dto.email.toLowerCase(),
+            name: dto.name ?? null,
             passwordHash,
         });
         return this.issueTokens(user);

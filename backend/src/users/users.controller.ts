@@ -8,6 +8,7 @@ import { UsersService, UserStats } from './users.service';
 interface UserProfile {
   id: string;
   email: string;
+  name: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,6 +27,7 @@ export class UsersController {
     return {
       id: found.id,
       email: found.email,
+      name: found.name ?? null,
       createdAt: found.createdAt,
       updatedAt: found.updatedAt,
     };

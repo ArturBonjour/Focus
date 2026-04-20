@@ -31,12 +31,21 @@ export interface RecommendationPayload {
   };
 }
 
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface DashboardData {
   mode: 'live' | 'demo';
   tasks: Task[];
   habits: Habit[];
   weekly: ProductivityPoint[];
   recommendations: RecommendationPayload;
+  user?: UserProfile;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
@@ -162,11 +171,12 @@ export async function getDashboardData(token?: string): Promise<DashboardData> {
   }
 
   try {
-    const [tasks, habits, weekly, recommendations] = await Promise.all([
+    const [tasks, habits, weekly, recommendations, user] = await Promise.all([
       apiFetch<Task[]>('/tasks', token),
       apiFetch<Habit[]>('/habits', token),
       apiFetch<ProductivityPoint[]>('/analytics/weekly', token),
       apiFetch<RecommendationPayload>('/analytics/recommendations', token),
+      apiFetch<UserProfile>('/users/me', token).catch(() => null),
     ]);
 
     return {
@@ -180,6 +190,7 @@ export async function getDashboardData(token?: string): Promise<DashboardData> {
       })),
       weekly,
       recommendations,
+      user: user ?? undefined,
     };
   } catch {
     return DEMO_DATA;

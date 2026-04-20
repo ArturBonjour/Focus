@@ -15,6 +15,7 @@ const class_validator_1 = require("class-validator");
 class RegisterDto {
     email;
     password;
+    name;
 }
 exports.RegisterDto = RegisterDto;
 __decorate([
@@ -28,4 +29,11 @@ __decorate([
     (0, class_validator_1.MinLength)(8),
     __metadata("design:type", String)
 ], RegisterDto.prototype, "password", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 'Артур' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(80),
+    __metadata("design:type", String)
+], RegisterDto.prototype, "name", void 0);
 //# sourceMappingURL=register.dto.js.map

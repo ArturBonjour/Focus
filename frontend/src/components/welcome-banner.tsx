@@ -49,6 +49,7 @@ interface WelcomeBannerProps {
   habitsCount: number;
   todayProgress: number; // 0–100
   weekly: ProductivityPoint[];
+  userName?: string | null;
 }
 
 export function WelcomeBanner({
@@ -58,6 +59,7 @@ export function WelcomeBanner({
   habitsCount,
   todayProgress,
   weekly,
+  userName,
 }: WelcomeBannerProps) {
   const ctx = getTimeContext();
   const quote = QUOTES[new Date().getDate() % QUOTES.length];
@@ -136,7 +138,7 @@ export function WelcomeBanner({
               lineHeight: 1.1,
             }}
           >
-            {ctx.text}!
+            {ctx.text}{userName ? `, ${userName}` : ''}!
           </h2>
           {weeklyChange !== null && (
             <span

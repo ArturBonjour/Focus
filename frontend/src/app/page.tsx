@@ -16,6 +16,7 @@ import { DailyGoalWidget } from '@/components/daily-goal-widget';
 import { WeeklyTrendsCard } from '@/components/weekly-trends-card';
 import { AnalyticsSummaryCard } from '@/components/analytics-summary-card';
 import { GlobalKeyShortcuts } from '@/components/global-key-shortcuts';
+import { AchievementsCard } from '@/components/achievements-card';
 import { getDashboardData } from '@/lib/api';
 
 export default async function Home() {
@@ -130,6 +131,7 @@ export default async function Home() {
           habitsCount={data.habits.length}
           todayProgress={completion}
           weekly={data.weekly}
+          userName={data.user?.name ?? data.user?.email?.split('@')[0] ?? null}
         />
 
         {/* ── KPI Cards ── */}
@@ -243,6 +245,11 @@ export default async function Home() {
 
         {/* ── Analytics Summary ── */}
         <AnalyticsSummaryCard apiUrl={apiUrl} token={token} />
+
+        {/* ── Achievements & Gamification ── */}
+        <section id="ai-section" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr)', gap: 14, marginBottom: 14 }}>
+          <AchievementsCard />
+        </section>
 
         {/* ── AI Recommendations ── */}
         <section id="ai-recs" className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '280ms', marginBottom: 14 }}>

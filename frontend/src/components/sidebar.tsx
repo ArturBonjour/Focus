@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ThemeToggle } from './theme-toggle';
+import { UserProfileWidget } from './user-profile-widget';
 
 function IconChart() {
   return (
@@ -120,6 +121,9 @@ export function Sidebar() {
             </div>
           </div>
         </div>
+
+        {/* User Profile Widget */}
+        <UserProfileWidget />
 
         {/* Nav */}
         <div style={{ padding: '12px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
