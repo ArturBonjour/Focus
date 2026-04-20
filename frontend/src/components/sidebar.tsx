@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { ThemeToggle } from './theme-toggle';
 
-
 function IconChart() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -42,9 +41,19 @@ function IconBrain() {
     </svg>
   );
 }
+function IconLogout() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+  );
+}
 
 export function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const navItems: { icon: React.ReactNode; label: string; href: string; active?: boolean }[] = [
     { icon: <IconChart />, label: 'Дашборд', href: '#', active: true },
@@ -53,6 +62,16 @@ export function Sidebar() {
     { icon: <IconTimer />, label: 'Focus Timer', href: '#focus-timer' },
     { icon: <IconBrain />, label: 'AI Инсайты', href: '#ai-section' },
   ];
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      localStorage.removeItem('nt-token');
+    } finally {
+      window.location.href = '/login';
+    }
+  }
 
   return (
     <>
@@ -152,11 +171,47 @@ export function Sidebar() {
         </div>
 
         {/* Bottom */}
-        <div style={{ padding: '12px 12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>v6.0</span>
-          <ThemeToggle />
+        <div style={{ padding: '10px 12px 20px', borderTop: '1px solid var(--border)' }}>
+          {/* Logout button */}
+          <button
+            onClick={() => { void handleLogout(); }}
+            disabled={loggingOut}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              width: '100%', padding: '8px 12px',
+              borderRadius: 10, border: 'none', cursor: loggingOut ? 'default' : 'pointer',
+              fontSize: '0.8rem', fontWeight: 500,
+              color: loggingOut ? 'var(--text-tertiary)' : 'var(--text-secondary)',
+              background: 'transparent',
+              transition: 'all 0.15s var(--ease)',
+              marginBottom: 8,
+            }}
+            onMouseEnter={(e) => {
+              if (!loggingOut) {
+                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.08)';
+                (e.currentTarget as HTMLButtonElement).style.color = '#ef4444';
+              }
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+              (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)';
+            }}
+          >
+            {loggingOut ? (
+              <span style={{ width: 14, height: 14, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
+            ) : (
+              <IconLogout />
+            )}
+            {loggingOut ? 'Выход...' : 'Выйти'}
+          </button>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>v6.0</span>
+            <ThemeToggle />
+          </div>
         </div>
       </nav>
     </>
   );
 }
+

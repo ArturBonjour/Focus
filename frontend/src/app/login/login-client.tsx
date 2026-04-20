@@ -17,10 +17,18 @@ export function LoginClient() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // If already logged in, redirect
+  // If already logged in (cookie set by middleware), redirect
   useEffect(() => {
+    // Middleware already handles the redirect, but we also check localStorage
+    // for the legacy flow so users aren't stuck on login
     const token = typeof window !== 'undefined' ? localStorage.getItem('nt-token') : null;
-    if (token) router.replace(`/?token=${token}`);
+    if (token) {
+      void fetch('/api/auth/set', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken: token }),
+      }).then(() => router.replace('/'));
+    }
   }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -36,6 +44,7 @@ export function LoginClient() {
       const res = await fetch(`${API_URL}${path}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',   // sends/receives httpOnly nt_refresh cookie
         body: JSON.stringify(body),
       });
 
@@ -46,8 +55,18 @@ export function LoginClient() {
       }
 
       const { accessToken } = (await res.json()) as { accessToken: string };
+
+      // Store in httpOnly cookie via Next.js route handler (no token in URL)
+      await fetch('/api/auth/set', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken }),
+      });
+
+      // Also keep in localStorage for client-side API calls in interactive components
       localStorage.setItem('nt-token', accessToken);
-      router.push(`/?token=${accessToken}`);
+
+      router.push('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Произошла ошибка');
     } finally {
@@ -214,3 +233,4 @@ export function LoginClient() {
     </div>
   );
 }
+

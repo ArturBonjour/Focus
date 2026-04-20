@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import { Sidebar } from '@/components/sidebar';
 import { StatCard } from '@/components/stat-card';
 import { ProductivityChart } from '@/components/productivity-chart';
@@ -17,13 +18,10 @@ import { AnalyticsSummaryCard } from '@/components/analytics-summary-card';
 import { GlobalKeyShortcuts } from '@/components/global-key-shortcuts';
 import { getDashboardData } from '@/lib/api';
 
-interface HomeProps {
-  searchParams: Promise<{ token?: string }>;
-}
-
-export default async function Home({ searchParams }: HomeProps) {
-  const params = await searchParams;
-  const token = params?.token;
+export default async function Home() {
+  // Read access token from the secure httpOnly cookie set by /api/auth/set
+  const cookieStore = await cookies();
+  const token = cookieStore.get('nt_access')?.value;
   const data = await getDashboardData(token);
 
   const doneTasks = data.tasks.filter((t) => t.status === 'DONE').length;

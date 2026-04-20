@@ -41,8 +41,16 @@ export interface DashboardData {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
 
+// In Docker, SSR requests should go via internal network to avoid going through
+// the public-facing port. INTERNAL_API_URL is set in docker-compose for the backend service.
+const SERVER_API_URL =
+  typeof window === 'undefined'
+    ? (process.env.INTERNAL_API_URL ?? API_URL)
+    : API_URL;
+
 async function apiFetch<T>(path: string, token?: string): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
+  const baseUrl = typeof window === 'undefined' ? SERVER_API_URL : API_URL;
+  const response = await fetch(`${baseUrl}${path}`, {
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       'Content-Type': 'application/json',

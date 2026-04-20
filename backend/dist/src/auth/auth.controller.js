@@ -19,10 +19,11 @@ const jwt_1 = require("@nestjs/jwt");
 const config_1 = require("@nestjs/config");
 const auth_service_1 = require("./auth.service");
 const login_dto_1 = require("./dto/login.dto");
-const refresh_dto_1 = require("./dto/refresh.dto");
 const register_dto_1 = require("./dto/register.dto");
 const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 const current_user_decorator_1 = require("../common/decorators/current-user.decorator");
+const REFRESH_COOKIE = 'nt_refresh';
+const REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
 let AuthController = class AuthController {
     authService;
     jwtService;
@@ -32,19 +33,45 @@ let AuthController = class AuthController {
         this.jwtService = jwtService;
         this.configService = configService;
     }
-    register(dto) {
-        return this.authService.register(dto);
+    setRefreshCookie(res, token) {
+        const isProduction = this.configService.get('NODE_ENV') === 'production';
+        res.cookie(REFRESH_COOKIE, token, {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? 'strict' : 'lax',
+            path: '/api/auth',
+            maxAge: REFRESH_COOKIE_MAX_AGE * 1000,
+        });
     }
-    login(dto) {
-        return this.authService.login(dto);
+    clearRefreshCookie(res) {
+        res.clearCookie(REFRESH_COOKIE, { path: '/api/auth' });
     }
-    async refresh(dto) {
-        const payload = await this.jwtService.verifyAsync(dto.refreshToken, {
+    async register(dto, res) {
+        const tokens = await this.authService.register(dto);
+        this.setRefreshCookie(res, tokens.refreshToken);
+        return { accessToken: tokens.accessToken };
+    }
+    async login(dto, res) {
+        const tokens = await this.authService.login(dto);
+        this.setRefreshCookie(res, tokens.refreshToken);
+        return { accessToken: tokens.accessToken };
+    }
+    async refresh(req, dto, res) {
+        const rawToken = req.cookies[REFRESH_COOKIE] ??
+            dto.refreshToken;
+        if (!rawToken) {
+            const { UnauthorizedException } = await import('@nestjs/common');
+            throw new UnauthorizedException('Refresh token missing');
+        }
+        const payload = await this.jwtService.verifyAsync(rawToken, {
             secret: this.configService.get('JWT_REFRESH_SECRET', 'dev-refresh-secret'),
         });
-        return this.authService.refresh(payload.sub, dto.refreshToken);
+        const tokens = await this.authService.refresh(payload.sub, rawToken);
+        this.setRefreshCookie(res, tokens.refreshToken);
+        return { accessToken: tokens.accessToken };
     }
-    logout(user) {
+    async logout(user, res) {
+        this.clearRefreshCookie(res);
         return this.authService.logout(user.sub);
     }
 };
@@ -53,33 +80,38 @@ __decorate([
     (0, common_1.Post)('register'),
     (0, swagger_1.ApiOperation)({ summary: 'Register a new user' }),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [register_dto_1.RegisterDto]),
+    __metadata("design:paramtypes", [register_dto_1.RegisterDto, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
 __decorate([
     (0, common_1.Post)('login'),
     (0, swagger_1.ApiOperation)({ summary: 'Login and get JWT tokens' }),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [login_dto_1.LoginDto]),
+    __metadata("design:paramtypes", [login_dto_1.LoginDto, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
 __decorate([
     (0, common_1.Post)('refresh'),
-    (0, swagger_1.ApiOperation)({ summary: 'Refresh access token' }),
-    __param(0, (0, common_1.Body)()),
+    (0, swagger_1.ApiOperation)({ summary: 'Refresh access token (cookie or body)' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [refresh_dto_1.RefreshDto]),
+    __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "refresh", null);
 __decorate([
     (0, common_1.Post)('logout'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, swagger_1.ApiOperation)({ summary: 'Logout and invalidate refresh token' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Logout: invalidate refresh token & clear cookie' }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "logout", null);
 exports.AuthController = AuthController = __decorate([

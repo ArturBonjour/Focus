@@ -1,6 +1,7 @@
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { AuthService, Tokens } from './auth.service';
+import type { Request, Response } from 'express';
+import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -10,10 +11,18 @@ export declare class AuthController {
     private readonly jwtService;
     private readonly configService;
     constructor(authService: AuthService, jwtService: JwtService, configService: ConfigService);
-    register(dto: RegisterDto): Promise<Tokens>;
-    login(dto: LoginDto): Promise<Tokens>;
-    refresh(dto: RefreshDto): Promise<Tokens>;
-    logout(user: JwtPayload): Promise<{
+    private setRefreshCookie;
+    private clearRefreshCookie;
+    register(dto: RegisterDto, res: Response): Promise<{
+        accessToken: string;
+    }>;
+    login(dto: LoginDto, res: Response): Promise<{
+        accessToken: string;
+    }>;
+    refresh(req: Request, dto: Partial<RefreshDto>, res: Response): Promise<{
+        accessToken: string;
+    }>;
+    logout(user: JwtPayload, res: Response): Promise<{
         success: boolean;
     }>;
 }

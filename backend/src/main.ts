@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -16,6 +17,8 @@ async function bootstrap() {
   app.use(helmet());
   // Compression
   app.use(compression());
+  // Cookies
+  app.use(cookieParser());
 
   app.setGlobalPrefix('api');
   app.enableCors({

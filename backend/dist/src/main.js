@@ -8,6 +8,7 @@ const core_1 = require("@nestjs/core");
 const swagger_1 = require("@nestjs/swagger");
 const helmet_1 = __importDefault(require("helmet"));
 const compression_1 = __importDefault(require("compression"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const app_module_1 = require("./app.module");
 const all_exceptions_filter_1 = require("./common/filters/all-exceptions.filter");
 const transform_interceptor_1 = require("./common/interceptors/transform.interceptor");
@@ -17,6 +18,7 @@ async function bootstrap() {
     });
     app.use((0, helmet_1.default)());
     app.use((0, compression_1.default)());
+    app.use((0, cookie_parser_1.default)());
     app.setGlobalPrefix('api');
     app.enableCors({
         origin: process.env.FRONTEND_URL ?? '*',
