@@ -107,7 +107,7 @@ export class TasksService {
         deadline: dto.deadline ? new Date(dto.deadline) : undefined,
         completedAt: dto.status === TaskStatus.DONE ? new Date() : undefined,
         tags: dto.tags ?? [],
-        subtasks: dto.subtasks ?? [],
+        subtasks: (dto.subtasks ?? []) as unknown as import('@prisma/client').Prisma.InputJsonValue,
       },
     });
   }
@@ -134,7 +134,7 @@ export class TasksService {
               ? null
               : existing.completedAt,
         tags: dto.tags !== undefined ? dto.tags : undefined,
-        subtasks: dto.subtasks !== undefined ? dto.subtasks : undefined,
+        subtasks: dto.subtasks !== undefined ? (dto.subtasks as unknown as import('@prisma/client').Prisma.InputJsonValue) : undefined,
       },
     });
   }

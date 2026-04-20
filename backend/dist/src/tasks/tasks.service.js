@@ -84,7 +84,7 @@ let TasksService = class TasksService {
                 deadline: dto.deadline ? new Date(dto.deadline) : undefined,
                 completedAt: dto.status === client_1.TaskStatus.DONE ? new Date() : undefined,
                 tags: dto.tags ?? [],
-                subtasks: dto.subtasks ?? [],
+                subtasks: (dto.subtasks ?? []),
             },
         });
     }
