@@ -43,6 +43,12 @@ export class TasksController {
     required: false,
   })
   @ApiQuery({ name: 'order', enum: ['asc', 'desc'], required: false })
+  @ApiQuery({
+    name: 'tags',
+    type: String,
+    required: false,
+    description: 'Comma-separated tag list',
+  })
   findAll(
     @CurrentUser() user: JwtPayload,
     @Query('status') status?: TaskStatus,
@@ -50,6 +56,7 @@ export class TasksController {
     @Query('search') search?: string,
     @Query('sortBy') sortBy?: SortBy,
     @Query('order') order?: Order,
+    @Query('tags') tags?: string,
   ): Promise<unknown> {
     return this.tasksService.findAll(user.sub, {
       status,
@@ -57,7 +64,19 @@ export class TasksController {
       search,
       sortBy,
       order,
+      tags: tags
+        ? tags
+            .split(',')
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : undefined,
     });
+  }
+
+  @Get('tags')
+  @ApiOperation({ summary: 'Get all unique tags used by this user' })
+  async getTags(@CurrentUser() user: JwtPayload): Promise<string[]> {
+    return this.tasksService.getUniqueTags(user.sub);
   }
 
   @Get('stats')

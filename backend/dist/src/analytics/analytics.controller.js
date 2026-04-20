@@ -48,7 +48,9 @@ let AnalyticsController = class AnalyticsController {
 exports.AnalyticsController = AnalyticsController;
 __decorate([
     (0, common_1.Get)('overview'),
-    (0, swagger_1.ApiOperation)({ summary: 'Single-call analytics overview: summary + monthly + trends + time-of-day + week-by-day + score' }),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Single-call analytics overview: summary + monthly + trends + time-of-day + week-by-day + score',
+    }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -96,7 +98,9 @@ __decorate([
 ], AnalyticsController.prototype, "getTrends", null);
 __decorate([
     (0, common_1.Get)('heatmap'),
-    (0, swagger_1.ApiOperation)({ summary: 'Full-year GitHub-style activity heatmap (tasks + habits)' }),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Full-year GitHub-style activity heatmap (tasks + habits)',
+    }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),

@@ -11,7 +11,8 @@ type Order = 'asc' | 'desc';
 export declare class TasksController {
     private readonly tasksService;
     constructor(tasksService: TasksService);
-    findAll(user: JwtPayload, status?: TaskStatus, priority?: TaskPriority, search?: string, sortBy?: SortBy, order?: Order): Promise<unknown>;
+    findAll(user: JwtPayload, status?: TaskStatus, priority?: TaskPriority, search?: string, sortBy?: SortBy, order?: Order, tags?: string): Promise<unknown>;
+    getTags(user: JwtPayload): Promise<string[]>;
     getStats(user: JwtPayload): Promise<unknown>;
     findUpcoming(user: JwtPayload, days?: string): Promise<unknown>;
     export(user: JwtPayload, res: Response, format?: 'json' | 'csv'): Promise<void>;

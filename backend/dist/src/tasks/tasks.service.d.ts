@@ -21,6 +21,7 @@ export interface TaskFilter {
     search?: string;
     sortBy?: SortBy;
     order?: Order;
+    tags?: string[];
 }
 export interface BulkUpdateDto {
     ids: string[];
@@ -44,6 +45,7 @@ export declare class TasksService {
         subtasks: import("@prisma/client/runtime/library").JsonValue;
         userId: string;
     }[]>;
+    getUniqueTags(userId: string): Promise<string[]>;
     getStats(userId: string): Promise<TaskStats>;
     findOne(userId: string, taskId: string): Promise<{
         id: string;

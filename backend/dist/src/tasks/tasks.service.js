@@ -32,16 +32,29 @@ let TasksService = class TasksService {
                 { description: { contains: filter.search, mode: 'insensitive' } },
             ];
         }
-        const PRIORITY_SORT_MAP = { HIGH: 'asc', MEDIUM: 'asc', LOW: 'asc' };
+        if (filter.tags && filter.tags.length > 0) {
+            where['tags'] = { hasSome: filter.tags };
+        }
+        const PRIORITY_SORT_MAP = {
+            HIGH: 'asc',
+            MEDIUM: 'asc',
+            LOW: 'asc',
+        };
         void PRIORITY_SORT_MAP;
         const dir = filter.order ?? 'desc';
         let orderBy;
         switch (filter.sortBy) {
             case 'deadline':
-                orderBy = [{ deadline: { sort: dir, nulls: 'last' } }, { createdAt: 'desc' }];
+                orderBy = [
+                    { deadline: { sort: dir, nulls: 'last' } },
+                    { createdAt: 'desc' },
+                ];
                 break;
             case 'priority':
-                orderBy = [{ priority: dir === 'asc' ? 'desc' : 'asc' }, { createdAt: 'desc' }];
+                orderBy = [
+                    { priority: dir === 'asc' ? 'desc' : 'asc' },
+                    { createdAt: 'desc' },
+                ];
                 break;
             case 'title':
                 orderBy = [{ title: dir }, { createdAt: 'desc' }];
@@ -52,6 +65,15 @@ let TasksService = class TasksService {
                 break;
         }
         return this.prisma.task.findMany({ where, orderBy });
+    }
+    async getUniqueTags(userId) {
+        const tasks = await this.prisma.task.findMany({
+            where: { userId },
+            select: { tags: true },
+        });
+        const tagSet = new Set();
+        tasks.forEach((t) => t.tags.forEach((tag) => tagSet.add(tag)));
+        return [...tagSet].sort();
     }
     async getStats(userId) {
         const tasks = await this.prisma.task.findMany({
@@ -100,7 +122,8 @@ let TasksService = class TasksService {
                 deadline: dto.deadline ? new Date(dto.deadline) : undefined,
                 completedAt: dto.status === client_1.TaskStatus.DONE ? new Date() : undefined,
                 tags: dto.tags ?? [],
-                subtasks: (dto.subtasks ?? []),
+                subtasks: (dto.subtasks ??
+                    []),
             },
         });
     }
@@ -123,7 +146,9 @@ let TasksService = class TasksService {
                         ? null
                         : existing.completedAt,
                 tags: dto.tags !== undefined ? dto.tags : undefined,
-                subtasks: dto.subtasks !== undefined ? dto.subtasks : undefined,
+                subtasks: dto.subtasks !== undefined
+                    ? dto.subtasks
+                    : undefined,
             },
         });
     }

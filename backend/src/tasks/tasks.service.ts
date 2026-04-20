@@ -25,6 +25,7 @@ export interface TaskFilter {
   search?: string;
   sortBy?: SortBy;
   order?: Order;
+  tags?: string[];
 }
 
 export interface BulkUpdateDto {
@@ -51,6 +52,9 @@ export class TasksService {
         { title: { contains: filter.search, mode: 'insensitive' } },
         { description: { contains: filter.search, mode: 'insensitive' } },
       ];
+    }
+    if (filter.tags && filter.tags.length > 0) {
+      where['tags'] = { hasSome: filter.tags };
     }
 
     const PRIORITY_SORT_MAP: Record<string, string> = {
@@ -86,6 +90,16 @@ export class TasksService {
     }
 
     return this.prisma.task.findMany({ where, orderBy });
+  }
+
+  async getUniqueTags(userId: string): Promise<string[]> {
+    const tasks = await this.prisma.task.findMany({
+      where: { userId },
+      select: { tags: true },
+    });
+    const tagSet = new Set<string>();
+    tasks.forEach((t) => t.tags.forEach((tag) => tagSet.add(tag)));
+    return [...tagSet].sort();
   }
 
   async getStats(userId: string): Promise<TaskStats> {

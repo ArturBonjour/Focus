@@ -8,6 +8,28 @@ import { ThemeToggle } from '@/components/theme-toggle';
 
 type Phase = 'focus' | 'short-break' | 'long-break';
 
+interface SessionRecord {
+  id: string;
+  phase: Phase;
+  taskTitle: string | null;
+  durationMin: number;
+  completedAt: string; // ISO
+}
+
+const STORAGE_KEY = 'nt-pomodoro-history';
+const MAX_HISTORY = 20;
+
+function loadHistory(): SessionRecord[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]') as SessionRecord[];
+  } catch { return []; }
+}
+
+function saveHistory(records: SessionRecord[]) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(records.slice(0, MAX_HISTORY))); } catch { /* ignore */ }
+}
+
 const PHASE_SECS: Record<Phase, number> = {
   focus: 25 * 60,
   'short-break': 5 * 60,
@@ -46,7 +68,8 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
   const [taskPickerOpen, setTaskPickerOpen] = useState(false);
   const [customMin, setCustomMin] = useState('');
   const [showCustom, setShowCustom] = useState(false);
-  const [completed, setCompleted] = useState(false); // burst on done
+  const [completed, setCompleted] = useState(false);
+  const [sessionHistory, setSessionHistory] = useState<SessionRecord[]>(() => loadHistory());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
 
@@ -57,6 +80,21 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
   const circumference = 2 * Math.PI * r;
   const dashOffset = circumference * (1 - progress);
   const accentColor = PHASE_COLOR[phase];
+
+  const recordSession = useCallback((p: Phase, taskTitle: string | null, durationMin: number) => {
+    const record: SessionRecord = {
+      id: Date.now().toString(),
+      phase: p,
+      taskTitle,
+      durationMin,
+      completedAt: new Date().toISOString(),
+    };
+    setSessionHistory((prev) => {
+      const next = [record, ...prev].slice(0, MAX_HISTORY);
+      saveHistory(next);
+      return next;
+    });
+  }, []);
 
   const stopInterval = useCallback(() => {
     if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
@@ -83,6 +121,7 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
           setTotalPomodoros((p) => p + 1);
           setCompleted(true);
           setTimeout(() => setCompleted(false), 2500);
+          recordSession('focus', selectedTask?.title ?? null, Math.round(PHASE_SECS.focus / 60));
 
           if (newDone >= 4) {
             setSessionsDone(0);
@@ -95,6 +134,7 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
             return PHASE_SECS['short-break'];
           }
         } else {
+          recordSession(phase, null, Math.round(PHASE_SECS[phase] / 60));
           toast.success('🎯 Время фокуса!', 'Перерыв закончился.');
           switchPhase('focus');
           return PHASE_SECS['focus'];
@@ -104,7 +144,7 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
 
     return stopInterval;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running, phase, stopInterval, switchPhase]);
+  }, [running, phase, stopInterval, switchPhase, recordSession]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -519,6 +559,60 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
           >
             ✅ Отметить выполненной
           </button>
+        </div>
+      )}
+
+      {/* Session History */}
+      {sessionHistory.length > 0 && (
+        <div style={{
+          marginTop: 24, width: '100%', maxWidth: 460,
+          background: 'var(--bg-card)', borderRadius: 16,
+          border: '1px solid var(--border)', padding: '16px 20px',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <h3 style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-primary)' }}>История сессий</h3>
+            <button
+              onClick={() => { setSessionHistory([]); saveHistory([]); }}
+              style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: 6, transition: 'color 0.15s' }}
+              onMouseEnter={(e) => { (e.currentTarget).style.color = 'var(--accent-1)'; }}
+              onMouseLeave={(e) => { (e.currentTarget).style.color = 'var(--text-tertiary)'; }}
+            >
+              Очистить
+            </button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 220, overflowY: 'auto' }}>
+            {sessionHistory.map((s) => {
+              const timeAgo = (() => {
+                const diff = Math.floor((Date.now() - new Date(s.completedAt).getTime()) / 60000);
+                if (diff < 1) return 'только что';
+                if (diff < 60) return `${diff} мин назад`;
+                const h = Math.floor(diff / 60);
+                return `${h}ч назад`;
+              })();
+              const phaseEmoji = { focus: '🎯', 'short-break': '☕', 'long-break': '🌴' }[s.phase];
+              const phaseLabel = { focus: 'Фокус', 'short-break': 'Короткий перерыв', 'long-break': 'Длинный перерыв' }[s.phase];
+              return (
+                <div key={s.id} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '7px 10px', borderRadius: 10,
+                  background: 'var(--bg-base)', fontSize: '0.78rem',
+                }}>
+                  <span style={{ fontSize: '1rem' }}>{phaseEmoji}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {phaseLabel} · {s.durationMin} мин
+                    </div>
+                    {s.taskTitle && (
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {s.taskTitle}
+                      </div>
+                    )}
+                  </div>
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)', flexShrink: 0 }}>{timeAgo}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

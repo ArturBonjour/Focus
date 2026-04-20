@@ -27,8 +27,23 @@ let TasksController = class TasksController {
     constructor(tasksService) {
         this.tasksService = tasksService;
     }
-    findAll(user, status, priority, search, sortBy, order) {
-        return this.tasksService.findAll(user.sub, { status, priority, search, sortBy, order });
+    findAll(user, status, priority, search, sortBy, order, tags) {
+        return this.tasksService.findAll(user.sub, {
+            status,
+            priority,
+            search,
+            sortBy,
+            order,
+            tags: tags
+                ? tags
+                    .split(',')
+                    .map((t) => t.trim())
+                    .filter(Boolean)
+                : undefined,
+        });
+    }
+    async getTags(user) {
+        return this.tasksService.getUniqueTags(user.sub);
     }
     getStats(user) {
         return this.tasksService.getStats(user.sub);
@@ -92,18 +107,37 @@ __decorate([
     (0, swagger_1.ApiQuery)({ name: 'status', enum: client_1.TaskStatus, required: false }),
     (0, swagger_1.ApiQuery)({ name: 'priority', enum: client_1.TaskPriority, required: false }),
     (0, swagger_1.ApiQuery)({ name: 'search', type: String, required: false }),
-    (0, swagger_1.ApiQuery)({ name: 'sortBy', enum: ['createdAt', 'deadline', 'priority', 'title'], required: false }),
+    (0, swagger_1.ApiQuery)({
+        name: 'sortBy',
+        enum: ['createdAt', 'deadline', 'priority', 'title'],
+        required: false,
+    }),
     (0, swagger_1.ApiQuery)({ name: 'order', enum: ['asc', 'desc'], required: false }),
+    (0, swagger_1.ApiQuery)({
+        name: 'tags',
+        type: String,
+        required: false,
+        description: 'Comma-separated tag list',
+    }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Query)('status')),
     __param(2, (0, common_1.Query)('priority')),
     __param(3, (0, common_1.Query)('search')),
     __param(4, (0, common_1.Query)('sortBy')),
     __param(5, (0, common_1.Query)('order')),
+    __param(6, (0, common_1.Query)('tags')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String, String, String, String]),
+    __metadata("design:paramtypes", [Object, String, String, String, String, String, String]),
     __metadata("design:returntype", Promise)
 ], TasksController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('tags'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get all unique tags used by this user' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], TasksController.prototype, "getTags", null);
 __decorate([
     (0, common_1.Get)('stats'),
     (0, swagger_1.ApiOperation)({ summary: 'Get task statistics by status and priority' }),
@@ -114,7 +148,9 @@ __decorate([
 ], TasksController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Get)('upcoming'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get tasks with deadline in the next N days (default 7)' }),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get tasks with deadline in the next N days (default 7)',
+    }),
     (0, swagger_1.ApiQuery)({ name: 'days', type: Number, required: false }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Query)('days')),

@@ -35,6 +35,9 @@ let HabitsController = class HabitsController {
     update(user, id, dto) {
         return this.habitsService.update(user.sub, id, dto);
     }
+    patch(user, id, dto) {
+        return this.habitsService.update(user.sub, id, dto);
+    }
     track(user, id, dto) {
         return this.habitsService.track(user.sub, id, dto);
     }
@@ -65,7 +68,7 @@ __decorate([
 ], HabitsController.prototype, "create", null);
 __decorate([
     (0, common_1.Put)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Update a habit' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Update a habit (full update)' }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Param)('id')),
     __param(2, (0, common_1.Body)()),
@@ -73,6 +76,16 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, update_habit_dto_1.UpdateHabitDto]),
     __metadata("design:returntype", Promise)
 ], HabitsController.prototype, "update", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Partially update a habit (rename)' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, update_habit_dto_1.UpdateHabitDto]),
+    __metadata("design:returntype", Promise)
+], HabitsController.prototype, "patch", null);
 __decorate([
     (0, common_1.Patch)(':id/track'),
     (0, swagger_1.ApiOperation)({ summary: 'Mark habit as done for a day' }),

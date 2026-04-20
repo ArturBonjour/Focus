@@ -63,6 +63,7 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
   const [sortBy, setSortBy] = useState<SortBy>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Collect all unique tags from all tasks
   const allTags = Array.from(new Set(tasks.flatMap((t) => t.tags ?? []))).sort();
@@ -76,11 +77,22 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
 
   const statusFiltered = active === 'ALL' ? tasks : tasks.filter((t) => t.status === active);
   const tagFiltered = activeTag ? statusFiltered.filter((t) => (t.tags ?? []).includes(activeTag)) : statusFiltered;
-  const visible = sortTasks(tagFiltered, sortBy, sortOrder);
+  const searchFiltered = searchQuery.trim()
+    ? tagFiltered.filter((t) => {
+        const q = searchQuery.toLowerCase();
+        return (
+          t.title.toLowerCase().includes(q) ||
+          (t.description ?? '').toLowerCase().includes(q) ||
+          (t.tags ?? []).some((tag) => tag.toLowerCase().includes(q))
+        );
+      })
+    : tagFiltered;
+  const visible = sortTasks(searchFiltered, sortBy, sortOrder);
 
   function clearFilters() {
     setActive('ALL');
     setActiveTag(null);
+    setSearchQuery('');
     clearSelection();
   }
 
@@ -164,6 +176,49 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
 
   return (
     <div>
+      {/* Inline search */}
+      <div style={{ position: 'relative', marginBottom: 8 }}>
+        <svg
+          style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', pointerEvents: 'none' }}
+          width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+        >
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => { setSearchQuery(e.target.value); clearSelection(); }}
+          placeholder="Поиск задач по названию, описанию или тегу…"
+          style={{
+            width: '100%', boxSizing: 'border-box',
+            padding: '7px 32px 7px 30px',
+            borderRadius: 10,
+            border: '1px solid var(--border)',
+            background: 'var(--bg-card)',
+            color: 'var(--text-primary)',
+            fontSize: '0.8rem',
+            outline: 'none',
+            transition: 'border-color 0.15s',
+          }}
+          onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--accent-1)'; }}
+          onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            style={{
+              position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--text-tertiary)', padding: 2, lineHeight: 1,
+              fontSize: '0.75rem',
+            }}
+            aria-label="Очистить поиск"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
       {/* Filter tabs */}
       <div style={{
         display: 'flex', gap: 4,
@@ -366,8 +421,25 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
           padding: '28px 0',
           color: 'var(--text-tertiary)', fontSize: '0.85rem', gap: 8,
         }}>
-          <span style={{ fontSize: '2rem' }}>🎉</span>
-          <p>{active === 'DONE' ? 'Нет выполненных задач' : 'Нет задач в этом фильтре'}</p>
+          <span style={{ fontSize: '2rem' }}>{searchQuery ? '🔍' : '🎉'}</span>
+          <p>
+            {searchQuery
+              ? `Ничего не найдено по «${searchQuery}»`
+              : active === 'DONE' ? 'Нет выполненных задач' : 'Нет задач в этом фильтре'
+            }
+          </p>
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              style={{
+                fontSize: '0.75rem', padding: '4px 10px', borderRadius: 8,
+                background: 'rgba(99,102,241,0.1)', color: 'var(--accent-1)',
+                border: '1px solid rgba(99,102,241,0.2)', cursor: 'pointer',
+              }}
+            >
+              Сбросить поиск
+            </button>
+          )}
         </div>
       ) : (
         <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

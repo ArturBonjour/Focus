@@ -9,6 +9,7 @@ export declare class HabitsController {
     findAll(user: JwtPayload): Promise<unknown>;
     create(user: JwtPayload, dto: CreateHabitDto): Promise<unknown>;
     update(user: JwtPayload, id: string, dto: UpdateHabitDto): Promise<unknown>;
+    patch(user: JwtPayload, id: string, dto: UpdateHabitDto): Promise<unknown>;
     track(user: JwtPayload, id: string, dto: TrackHabitDto): Promise<unknown>;
     untrack(user: JwtPayload, id: string, dto: TrackHabitDto): Promise<unknown>;
     remove(user: JwtPayload, id: string): Promise<unknown>;

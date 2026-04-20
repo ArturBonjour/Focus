@@ -40,8 +40,18 @@ export class HabitsController {
   }
 
   @Put(':id')
-  @ApiOperation({ summary: 'Update a habit' })
+  @ApiOperation({ summary: 'Update a habit (full update)' })
   update(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @Body() dto: UpdateHabitDto,
+  ): Promise<unknown> {
+    return this.habitsService.update(user.sub, id, dto);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Partially update a habit (rename)' })
+  patch(
     @CurrentUser() user: JwtPayload,
     @Param('id') id: string,
     @Body() dto: UpdateHabitDto,

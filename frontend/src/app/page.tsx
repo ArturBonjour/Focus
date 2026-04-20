@@ -53,6 +53,15 @@ export default async function Home() {
         )
       : null;
 
+  // Productivity score: 50% completion rate + 30% habit streaks (capped at 30d avg) + 20% velocity
+  const avgStreak = data.habits.length > 0 ? totalStreak / data.habits.length : 0;
+  const velocityScore = wLen > 0 ? Math.min((data.weekly[wLen - 1].completedTasksCount / 5) * 100, 100) : 0;
+  const productivityScore = Math.round(
+    completion * 0.5 + Math.min((avgStreak / 14) * 100, 100) * 0.3 + velocityScore * 0.2,
+  );
+  const scoreColor = productivityScore >= 70 ? '#10b981' : productivityScore >= 40 ? '#f59e0b' : '#ef4444';
+  const scoreTier = productivityScore >= 70 ? 'Высокая' : productivityScore >= 40 ? 'Средняя' : 'Низкая';
+
   const statusDonut = [
     { name: 'Готово', value: doneTasks, color: '#10b981' },
     { name: 'В процессе', value: inProgressTasks, color: '#f59e0b' },
@@ -102,6 +111,24 @@ export default async function Home() {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {/* Productivity score badge */}
+              <div
+                title={`Индекс продуктивности: ${productivityScore}/100 (${scoreTier})`}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '4px 10px', borderRadius: 20,
+                  background: `${scoreColor}18`,
+                  border: `1px solid ${scoreColor}40`,
+                  fontSize: '0.72rem', fontWeight: 700,
+                  color: scoreColor,
+                  cursor: 'default',
+                  userSelect: 'none',
+                }}
+              >
+                <span style={{ fontSize: '0.75rem' }}>⚡</span>
+                {productivityScore}
+              </div>
+
               <NotificationBell tasks={data.tasks} />
 
               <button

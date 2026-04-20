@@ -35,6 +35,9 @@ export function HabitCard({ habit, apiUrl, token, onDelete }: HabitCardProps) {
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleted, setDeleted] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [habitName, setHabitName] = useState(habit.name);
+  const [nameInput, setNameInput] = useState(habit.name);
 
   const today = new Date().toISOString().slice(0, 10);
   const isToday = completedDays.includes(today);
@@ -143,6 +146,26 @@ export function HabitCard({ habit, apiUrl, token, onDelete }: HabitCardProps) {
     }
   }
 
+  async function handleRename() {
+    const trimmed = nameInput.trim();
+    if (!trimmed || trimmed === habitName) { setRenaming(false); return; }
+    const prev = habitName;
+    setHabitName(trimmed);
+    setRenaming(false);
+    try {
+      const res = await fetch(`${apiUrl}/habits/${habit.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name: trimmed }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success('Привычка переименована', trimmed);
+    } catch {
+      setHabitName(prev);
+      toast.error('Не удалось переименовать привычку');
+    }
+  }
+
   if (deleted) return null;
 
   return (
@@ -185,9 +208,32 @@ export function HabitCard({ habit, apiUrl, token, onDelete }: HabitCardProps) {
         }}
       >
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.875rem', lineHeight: 1.3 }}>
-            {habit.name}
-          </p>
+          {renaming ? (
+            <input
+              autoFocus
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              onBlur={() => { void handleRename(); }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') { void handleRename(); }
+                if (e.key === 'Escape') { setNameInput(habitName); setRenaming(false); }
+              }}
+              style={{
+                fontWeight: 600, fontSize: '0.875rem', lineHeight: 1.3,
+                background: 'var(--bg-base)', border: '1px solid var(--accent-1)',
+                borderRadius: 6, padding: '2px 6px', color: 'var(--text-primary)',
+                width: '100%', outline: 'none',
+              }}
+            />
+          ) : (
+            <p
+              title="Нажмите дважды для переименования"
+              onDoubleClick={() => { setNameInput(habitName); setRenaming(true); }}
+              style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.875rem', lineHeight: 1.3, cursor: 'text', userSelect: 'none' }}
+            >
+              {habitName}
+            </p>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 3 }}>
             <span style={{ fontSize: '0.85rem' }}>🔥</span>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: streak > 0 ? '#f59e0b' : 'var(--text-tertiary)' }}>
