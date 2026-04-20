@@ -17,6 +17,7 @@ import { WeeklyTrendsCard } from '@/components/weekly-trends-card';
 import { AnalyticsSummaryCard } from '@/components/analytics-summary-card';
 import { GlobalKeyShortcuts } from '@/components/global-key-shortcuts';
 import { AchievementsCard } from '@/components/achievements-card';
+import { NotificationBell } from '@/components/notification-bell';
 import { getDashboardData } from '@/lib/api';
 
 export default async function Home() {
@@ -96,6 +97,8 @@ export default async function Home() {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <NotificationBell tasks={data.tasks} />
+
               <button
                 className="btn btn-ghost"
                 style={{ gap: 6, fontSize: '0.78rem', padding: '6px 12px' }}

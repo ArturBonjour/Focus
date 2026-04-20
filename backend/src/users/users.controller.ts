@@ -1,9 +1,10 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../auth/strategies/jwt.strategy';
 import { UsersService, UserStats } from './users.service';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 interface UserProfile {
   id: string;
@@ -30,6 +31,24 @@ export class UsersController {
       name: found.name ?? null,
       createdAt: found.createdAt,
       updatedAt: found.updatedAt,
+    };
+  }
+
+  @Patch('me')
+  @ApiOperation({ summary: 'Update current user profile (name)' })
+  async updateMe(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: UpdateProfileDto,
+  ): Promise<UserProfile | null> {
+    const updated = await this.usersService.updateProfile(user.sub, {
+      name: dto.name,
+    });
+    return {
+      id: updated.id,
+      email: updated.email,
+      name: updated.name ?? null,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt,
     };
   }
 

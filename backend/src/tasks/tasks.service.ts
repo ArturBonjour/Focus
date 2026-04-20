@@ -80,6 +80,16 @@ export class TasksService {
     };
   }
 
+  async findOne(userId: string, taskId: string) {
+    const task = await this.prisma.task.findFirst({
+      where: { id: taskId, userId },
+    });
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+    return task;
+  }
+
   create(userId: string, dto: CreateTaskDto) {
     return this.prisma.task.create({
       data: {

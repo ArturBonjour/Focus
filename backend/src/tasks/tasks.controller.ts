@@ -49,16 +49,46 @@ export class TasksController {
   }
 
   @Get('export')
-  @ApiOperation({ summary: 'Export all tasks as JSON file' })
+  @ApiOperation({ summary: 'Export all tasks as JSON or CSV file' })
+  @ApiQuery({ name: 'format', enum: ['json', 'csv'], required: false })
   async export(
     @CurrentUser() user: JwtPayload,
     @Res() res: Response,
+    @Query('format') format?: 'json' | 'csv',
   ): Promise<void> {
     const tasks = await this.tasksService.findAll(user.sub, {});
+    const date = new Date().toISOString().slice(0, 10);
+
+    if (format === 'csv') {
+      const header =
+        'id,title,description,priority,status,deadline,createdAt,completedAt\n';
+      const rows = tasks
+        .map((t) =>
+          [
+            t.id,
+            `"${(t.title ?? '').replace(/"/g, '""')}"`,
+            `"${(t.description ?? '').replace(/"/g, '""')}"`,
+            t.priority,
+            t.status,
+            t.deadline ? new Date(t.deadline).toISOString() : '',
+            new Date(t.createdAt).toISOString(),
+            t.completedAt ? new Date(t.completedAt).toISOString() : '',
+          ].join(','),
+        )
+        .join('\n');
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="tasks-${date}.csv"`,
+      );
+      res.send(header + rows);
+      return;
+    }
+
     res.setHeader('Content-Type', 'application/json');
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename="tasks-${new Date().toISOString().slice(0, 10)}.json"`,
+      `attachment; filename="tasks-${date}.json"`,
     );
     res.send(JSON.stringify(tasks, null, 2));
   }
@@ -70,6 +100,15 @@ export class TasksController {
     @Body() dto: CreateTaskDto,
   ): Promise<unknown> {
     return this.tasksService.create(user.sub, dto);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a single task by ID' })
+  findOne(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+  ): Promise<unknown> {
+    return this.tasksService.findOne(user.sub, id);
   }
 
   @Patch(':id/status')

@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 const API_URL =
   process.env.INTERNAL_API_URL ??
@@ -25,6 +25,37 @@ export async function GET(): Promise<NextResponse> {
 
   if (!res || !res.ok) {
     return NextResponse.json({ error: 'Failed to fetch profile' }, { status: res?.status ?? 500 });
+  }
+
+  const data = (await res.json()) as unknown;
+  return NextResponse.json(data);
+}
+
+/**
+ * PATCH /api/user/profile
+ * Proxies to backend PATCH /api/users/me to update name.
+ */
+export async function PATCH(req: NextRequest): Promise<NextResponse> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('nt_access')?.value;
+
+  if (!token) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const body = (await req.json().catch(() => ({}))) as unknown;
+
+  const res = await fetch(`${API_URL}/users/me`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  }).catch(() => null);
+
+  if (!res || !res.ok) {
+    return NextResponse.json({ error: 'Failed to update profile' }, { status: res?.status ?? 500 });
   }
 
   const data = (await res.json()) as unknown;

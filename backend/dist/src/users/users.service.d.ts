@@ -25,5 +25,8 @@ export declare class UsersService {
     findByEmail(email: string): Promise<User | null>;
     findById(id: string): Promise<User | null>;
     updateRefreshTokenHash(userId: string, refreshTokenHash: string | null): Promise<User>;
+    updateProfile(userId: string, data: {
+        name?: string | null;
+    }): Promise<User>;
     getStats(userId: string): Promise<UserStats>;
 }

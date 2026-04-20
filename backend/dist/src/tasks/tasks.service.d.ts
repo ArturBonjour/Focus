@@ -34,6 +34,18 @@ export declare class TasksService {
         userId: string;
     }[]>;
     getStats(userId: string): Promise<TaskStats>;
+    findOne(userId: string, taskId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        title: string;
+        description: string | null;
+        priority: import("@prisma/client").$Enums.TaskPriority;
+        status: import("@prisma/client").$Enums.TaskStatus;
+        deadline: Date | null;
+        completedAt: Date | null;
+        userId: string;
+    }>;
     create(userId: string, dto: CreateTaskDto): import("@prisma/client").Prisma.Prisma__TaskClient<{
         id: string;
         createdAt: Date;

@@ -54,6 +54,12 @@ let UsersService = class UsersService {
             data: { refreshTokenHash },
         });
     }
+    updateProfile(userId, data) {
+        return this.prisma.user.update({
+            where: { id: userId },
+            data,
+        });
+    }
     async getStats(userId) {
         const [tasks, habits] = await Promise.all([
             this.prisma.task.findMany({

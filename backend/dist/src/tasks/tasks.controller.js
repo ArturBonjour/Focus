@@ -33,14 +33,37 @@ let TasksController = class TasksController {
     getStats(user) {
         return this.tasksService.getStats(user.sub);
     }
-    async export(user, res) {
+    async export(user, res, format) {
         const tasks = await this.tasksService.findAll(user.sub, {});
+        const date = new Date().toISOString().slice(0, 10);
+        if (format === 'csv') {
+            const header = 'id,title,description,priority,status,deadline,createdAt,completedAt\n';
+            const rows = tasks
+                .map((t) => [
+                t.id,
+                `"${(t.title ?? '').replace(/"/g, '""')}"`,
+                `"${(t.description ?? '').replace(/"/g, '""')}"`,
+                t.priority,
+                t.status,
+                t.deadline ? new Date(t.deadline).toISOString() : '',
+                new Date(t.createdAt).toISOString(),
+                t.completedAt ? new Date(t.completedAt).toISOString() : '',
+            ].join(','))
+                .join('\n');
+            res.setHeader('Content-Type', 'text/csv');
+            res.setHeader('Content-Disposition', `attachment; filename="tasks-${date}.csv"`);
+            res.send(header + rows);
+            return;
+        }
         res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Content-Disposition', `attachment; filename="tasks-${new Date().toISOString().slice(0, 10)}.json"`);
+        res.setHeader('Content-Disposition', `attachment; filename="tasks-${date}.json"`);
         res.send(JSON.stringify(tasks, null, 2));
     }
     create(user, dto) {
         return this.tasksService.create(user.sub, dto);
+    }
+    findOne(user, id) {
+        return this.tasksService.findOne(user.sub, id);
     }
     updateStatus(user, id, dto) {
         return this.tasksService.update(user.sub, id, dto);
@@ -80,11 +103,13 @@ __decorate([
 ], TasksController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Get)('export'),
-    (0, swagger_1.ApiOperation)({ summary: 'Export all tasks as JSON file' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Export all tasks as JSON or CSV file' }),
+    (0, swagger_1.ApiQuery)({ name: 'format', enum: ['json', 'csv'], required: false }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Res)()),
+    __param(2, (0, common_1.Query)('format')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object, Object, String]),
     __metadata("design:returntype", Promise)
 ], TasksController.prototype, "export", null);
 __decorate([
@@ -96,6 +121,15 @@ __decorate([
     __metadata("design:paramtypes", [Object, create_task_dto_1.CreateTaskDto]),
     __metadata("design:returntype", Promise)
 ], TasksController.prototype, "create", null);
+__decorate([
+    (0, common_1.Get)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get a single task by ID' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], TasksController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':id/status'),
     (0, swagger_1.ApiOperation)({ summary: 'Quick status update for a task' }),

@@ -64,6 +64,15 @@ let TasksService = class TasksService {
             completionRate,
         };
     }
+    async findOne(userId, taskId) {
+        const task = await this.prisma.task.findFirst({
+            where: { id: taskId, userId },
+        });
+        if (!task) {
+            throw new common_1.NotFoundException('Task not found');
+        }
+        return task;
+    }
     create(userId, dto) {
         return this.prisma.task.create({
             data: {

@@ -73,6 +73,13 @@ export class UsersService {
     });
   }
 
+  updateProfile(userId: string, data: { name?: string | null }): Promise<User> {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data,
+    });
+  }
+
   async getStats(userId: string): Promise<UserStats> {
     const [tasks, habits] = await Promise.all([
       this.prisma.task.findMany({
