@@ -20,6 +20,14 @@ export function SettingsClient({ profile, apiUrl, token }: SettingsClientProps) 
   const [name, setName] = useState(profile?.name ?? '');
   const [saving, setSaving] = useState(false);
 
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPwd, setShowCurrentPwd] = useState(false);
+  const [showNewPwd, setShowNewPwd] = useState(false);
+  const [savingPwd, setSavingPwd] = useState(false);
+
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '11px 14px',
     borderRadius: 10, border: '1.5px solid var(--border-strong)',
@@ -45,6 +53,36 @@ export function SettingsClient({ profile, apiUrl, token }: SettingsClientProps) 
       toast.error('Не удалось сохранить изменения');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      toast.error('Пароли не совпадают');
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error('Новый пароль должен быть не менее 8 символов');
+      return;
+    }
+    setSavingPwd(true);
+    try {
+      const res = await fetch('/api/user/password', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) throw new Error(data.error ?? 'Failed');
+      toast.success('Пароль изменён', 'Новый пароль вступил в силу');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Не удалось изменить пароль');
+    } finally {
+      setSavingPwd(false);
     }
   }
 
@@ -161,6 +199,104 @@ export function SettingsClient({ profile, apiUrl, token }: SettingsClientProps) 
               {saving ? (
                 <span className="animate-spin" style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block' }} />
               ) : '💾 Сохранить'}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      {/* Password change card */}
+      <section className="card animate-slide-up" style={{ padding: '24px', marginBottom: 16, animationDelay: '30ms' }}>
+        <h2 style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>
+          🔒 Изменить пароль
+        </h2>
+        <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginBottom: 18, lineHeight: 1.5 }}>
+          Убедитесь, что используете надёжный уникальный пароль.
+        </p>
+        <form onSubmit={(e) => { void handleChangePassword(e); }} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>
+              Текущий пароль
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showCurrentPwd ? 'text' : 'password'}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Введите текущий пароль"
+                required
+                minLength={8}
+                style={{ ...inputStyle, paddingRight: 44 }}
+                onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--accent-1)'; }}
+                onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--border-strong)'; }}
+              />
+              <button type="button" onClick={() => setShowCurrentPwd((p) => !p)}
+                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: 4, lineHeight: 1 }}>
+                {showCurrentPwd
+                  ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                }
+              </button>
+            </div>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>
+              Новый пароль
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showNewPwd ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Минимум 8 символов"
+                required
+                minLength={8}
+                style={{ ...inputStyle, paddingRight: 44 }}
+                onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--accent-1)'; }}
+                onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--border-strong)'; }}
+              />
+              <button type="button" onClick={() => setShowNewPwd((p) => !p)}
+                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: 4, lineHeight: 1 }}>
+                {showNewPwd
+                  ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                }
+              </button>
+            </div>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>
+              Подтвердите новый пароль
+            </label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Повторите новый пароль"
+              required
+              minLength={8}
+              style={{
+                ...inputStyle,
+                borderColor: confirmPassword && confirmPassword !== newPassword ? '#ef4444' : undefined,
+              }}
+              onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = confirmPassword !== newPassword ? '#ef4444' : 'var(--accent-1)'; }}
+              onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = confirmPassword !== newPassword ? '#ef4444' : 'var(--border-strong)'; }}
+            />
+            {confirmPassword && confirmPassword !== newPassword && (
+              <p style={{ fontSize: '0.7rem', color: '#ef4444', marginTop: 4 }}>
+                ⚠️ Пароли не совпадают
+              </p>
+            )}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={savingPwd || !currentPassword || !newPassword || newPassword !== confirmPassword}
+              style={{ padding: '9px 22px', fontSize: '0.85rem' }}
+            >
+              {savingPwd ? (
+                <span className="animate-spin" style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block' }} />
+              ) : '🔒 Изменить пароль'}
             </button>
           </div>
         </form>

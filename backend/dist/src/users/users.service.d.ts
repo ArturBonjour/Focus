@@ -28,5 +28,8 @@ export declare class UsersService {
     updateProfile(userId: string, data: {
         name?: string | null;
     }): Promise<User>;
+    changePassword(userId: string, currentPassword: string, newPassword: string): Promise<{
+        success: boolean;
+    }>;
     getStats(userId: string): Promise<UserStats>;
 }

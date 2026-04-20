@@ -5,6 +5,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../auth/strategies/jwt.strategy';
 import { UsersService, UserStats } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 interface UserProfile {
   id: string;
@@ -56,5 +57,18 @@ export class UsersController {
   @ApiOperation({ summary: 'Get gamification stats: XP, level, achievements' })
   getStats(@CurrentUser() user: JwtPayload): Promise<UserStats> {
     return this.usersService.getStats(user.sub);
+  }
+
+  @Patch('me/password')
+  @ApiOperation({ summary: 'Change current user password' })
+  changePassword(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: ChangePasswordDto,
+  ): Promise<{ success: boolean }> {
+    return this.usersService.changePassword(
+      user.sub,
+      dto.currentPassword,
+      dto.newPassword,
+    );
   }
 }
