@@ -37,7 +37,11 @@ export class TasksController {
   @ApiQuery({ name: 'status', enum: TaskStatus, required: false })
   @ApiQuery({ name: 'priority', enum: TaskPriority, required: false })
   @ApiQuery({ name: 'search', type: String, required: false })
-  @ApiQuery({ name: 'sortBy', enum: ['createdAt', 'deadline', 'priority', 'title'], required: false })
+  @ApiQuery({
+    name: 'sortBy',
+    enum: ['createdAt', 'deadline', 'priority', 'title'],
+    required: false,
+  })
   @ApiQuery({ name: 'order', enum: ['asc', 'desc'], required: false })
   findAll(
     @CurrentUser() user: JwtPayload,
@@ -47,7 +51,13 @@ export class TasksController {
     @Query('sortBy') sortBy?: SortBy,
     @Query('order') order?: Order,
   ): Promise<unknown> {
-    return this.tasksService.findAll(user.sub, { status, priority, search, sortBy, order });
+    return this.tasksService.findAll(user.sub, {
+      status,
+      priority,
+      search,
+      sortBy,
+      order,
+    });
   }
 
   @Get('stats')
@@ -57,13 +67,18 @@ export class TasksController {
   }
 
   @Get('upcoming')
-  @ApiOperation({ summary: 'Get tasks with deadline in the next N days (default 7)' })
+  @ApiOperation({
+    summary: 'Get tasks with deadline in the next N days (default 7)',
+  })
   @ApiQuery({ name: 'days', type: Number, required: false })
   findUpcoming(
     @CurrentUser() user: JwtPayload,
     @Query('days') days?: string,
   ): Promise<unknown> {
-    return this.tasksService.findUpcoming(user.sub, days ? parseInt(days, 10) : 7);
+    return this.tasksService.findUpcoming(
+      user.sub,
+      days ? parseInt(days, 10) : 7,
+    );
   }
 
   @Get('export')
@@ -78,7 +93,8 @@ export class TasksController {
     const date = new Date().toISOString().slice(0, 10);
 
     if (format === 'csv') {
-      const header = 'id,title,description,priority,status,tags,deadline,createdAt,completedAt\n';
+      const header =
+        'id,title,description,priority,status,tags,deadline,createdAt,completedAt\n';
       const rows = tasks
         .map((t) =>
           [
@@ -95,13 +111,19 @@ export class TasksController {
         )
         .join('\n');
       res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename="tasks-${date}.csv"`);
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="tasks-${date}.csv"`,
+      );
       res.send(header + rows);
       return;
     }
 
     res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', `attachment; filename="tasks-${date}.json"`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="tasks-${date}.json"`,
+    );
     res.send(JSON.stringify(tasks, null, 2));
   }
 

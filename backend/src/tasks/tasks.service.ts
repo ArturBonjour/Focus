@@ -53,18 +53,28 @@ export class TasksService {
       ];
     }
 
-    const PRIORITY_SORT_MAP: Record<string, string> = { HIGH: 'asc', MEDIUM: 'asc', LOW: 'asc' };
+    const PRIORITY_SORT_MAP: Record<string, string> = {
+      HIGH: 'asc',
+      MEDIUM: 'asc',
+      LOW: 'asc',
+    };
     void PRIORITY_SORT_MAP; // suppress unused
     const dir = filter.order ?? 'desc';
     // Build orderBy as a plain object array to avoid generic parameter issues
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     let orderBy: any[];
     switch (filter.sortBy) {
       case 'deadline':
-        orderBy = [{ deadline: { sort: dir, nulls: 'last' } }, { createdAt: 'desc' }];
+        orderBy = [
+          { deadline: { sort: dir, nulls: 'last' } },
+          { createdAt: 'desc' },
+        ];
         break;
       case 'priority':
-        orderBy = [{ priority: dir === 'asc' ? 'desc' : 'asc' }, { createdAt: 'desc' }];
+        orderBy = [
+          { priority: dir === 'asc' ? 'desc' : 'asc' },
+          { createdAt: 'desc' },
+        ];
         break;
       case 'title':
         orderBy = [{ title: dir }, { createdAt: 'desc' }];
@@ -75,7 +85,6 @@ export class TasksService {
         break;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     return this.prisma.task.findMany({ where, orderBy });
   }
 
@@ -132,7 +141,8 @@ export class TasksService {
         deadline: dto.deadline ? new Date(dto.deadline) : undefined,
         completedAt: dto.status === TaskStatus.DONE ? new Date() : undefined,
         tags: dto.tags ?? [],
-        subtasks: (dto.subtasks ?? []) as unknown as import('@prisma/client').Prisma.InputJsonValue,
+        subtasks: (dto.subtasks ??
+          []) as unknown as import('@prisma/client').Prisma.InputJsonValue,
       },
     });
   }
@@ -159,7 +169,10 @@ export class TasksService {
               ? null
               : existing.completedAt,
         tags: dto.tags !== undefined ? dto.tags : undefined,
-        subtasks: dto.subtasks !== undefined ? (dto.subtasks as unknown as import('@prisma/client').Prisma.InputJsonValue) : undefined,
+        subtasks:
+          dto.subtasks !== undefined
+            ? (dto.subtasks as unknown as import('@prisma/client').Prisma.InputJsonValue)
+            : undefined,
       },
     });
   }

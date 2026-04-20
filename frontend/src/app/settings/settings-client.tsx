@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from '@/components/toast';
+import { NotificationPermissionButton } from '@/components/deadline-notifier';
 
 interface UserProfile {
   id: string;
@@ -337,6 +338,7 @@ export function SettingsClient({ profile, apiUrl, token }: SettingsClientProps) 
             </svg>
             Скачать CSV
           </button>
+          <NotificationPermissionButton />
         </div>
       </section>
 

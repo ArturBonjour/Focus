@@ -20,6 +20,8 @@ import { AchievementsCard } from '@/components/achievements-card';
 import { NotificationBell } from '@/components/notification-bell';
 import { UpcomingDeadlinesWidget } from '@/components/upcoming-deadlines-widget';
 import { getDashboardData } from '@/lib/api';
+import { OnboardingModal } from '@/components/onboarding-modal';
+import { DeadlineNotifier } from '@/components/deadline-notifier';
 
 export default async function Home() {
   // Read access token from the secure httpOnly cookie set by /api/auth/set
@@ -76,6 +78,8 @@ export default async function Home() {
 
       <Sidebar />
       <ToastProvider />
+      <OnboardingModal />
+      <DeadlineNotifier tasks={data.tasks} />
       <CommandPalette tasks={data.tasks} habits={data.habits} />
       <GlobalKeyShortcuts />
 

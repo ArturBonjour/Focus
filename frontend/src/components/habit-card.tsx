@@ -92,12 +92,17 @@ export function HabitCard({ habit, apiUrl, token, onDelete }: HabitCardProps) {
       }
       if (typeof updated.streak === 'number') setStreak(updated.streak);
 
-      if (wasTracked) {
-        toast.info('Отметка снята', habit.name);
+      const MILESTONES = [3, 7, 14, 21, 30, 60, 100];
+      if (!wasTracked) {
+        const newStreak = typeof updated.streak === 'number' ? updated.streak : streak + 1;
+        if (MILESTONES.includes(newStreak)) {
+          setTimeout(() => toast.success(`🏆 Стрик ${newStreak} дней!`, `${habit.name} — выдающийся результат!`), 400);
+        } else {
+          toast.success('Привычка выполнена! 🎉', habit.name);
+        }
       } else {
-        toast.success('Привычка выполнена! 🎉', habit.name);
+        toast.info('Отметка снята', habit.name);
       }
-    } catch {
       // Revert optimistic update on error
       if (wasTracked) {
         setCompletedDays((prev) => [...prev, today]);

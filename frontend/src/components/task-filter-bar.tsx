@@ -62,6 +62,10 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
   const [bulkLoading, setBulkLoading] = useState(false);
   const [sortBy, setSortBy] = useState<SortBy>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [activeTag, setActiveTag] = useState<string | null>(null);
+
+  // Collect all unique tags from all tasks
+  const allTags = Array.from(new Set(tasks.flatMap((t) => t.tags ?? []))).sort();
 
   const counts: Record<Filter, number> = {
     ALL:         tasks.length,
@@ -70,8 +74,15 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
     DONE:        tasks.filter((t) => t.status === 'DONE').length,
   };
 
-  const filtered = active === 'ALL' ? tasks : tasks.filter((t) => t.status === active);
-  const visible = sortTasks(filtered, sortBy, sortOrder);
+  const statusFiltered = active === 'ALL' ? tasks : tasks.filter((t) => t.status === active);
+  const tagFiltered = activeTag ? statusFiltered.filter((t) => (t.tags ?? []).includes(activeTag)) : statusFiltered;
+  const visible = sortTasks(tagFiltered, sortBy, sortOrder);
+
+  function clearFilters() {
+    setActive('ALL');
+    setActiveTag(null);
+    clearSelection();
+  }
 
   function toggleSelect(id: string) {
     setSelected((prev) => {
@@ -195,6 +206,48 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
           </button>
         ))}
       </div>
+
+      {/* Tag filter pills */}
+      {allTags.length > 0 && (
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
+          {activeTag && (
+            <button
+              onClick={() => setActiveTag(null)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+                padding: '2px 8px', borderRadius: 999, fontSize: '0.68rem', fontWeight: 600,
+                background: 'rgba(99,102,241,0.15)', color: 'var(--accent-1)',
+                border: '1px solid rgba(99,102,241,0.3)', cursor: 'pointer',
+              }}
+            >
+              ✕ Все теги
+            </button>
+          )}
+          {allTags.map((tag) => {
+            const h = hashTag(tag);
+            const isActive = activeTag === tag;
+            return (
+              <button
+                key={tag}
+                onClick={() => setActiveTag(isActive ? null : tag)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center',
+                  padding: '2px 8px', borderRadius: 999,
+                  fontSize: '0.65rem', fontWeight: 600,
+                  background: isActive ? `hsl(${h}, 70%, 15%)` : 'transparent',
+                  color: `hsl(${h}, 75%, 70%)`,
+                  border: `1px solid hsl(${h}, 65%, ${isActive ? 40 : 25}%)`,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  opacity: activeTag && !isActive ? 0.6 : 1,
+                }}
+              >
+                #{tag}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Sort + Bulk actions bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
@@ -354,4 +407,11 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
       )}
     </div>
   );
+}
+
+/** Simple hash for deterministic tag colors */
+function hashTag(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0xffff;
+  return (h * 137) % 360;
 }

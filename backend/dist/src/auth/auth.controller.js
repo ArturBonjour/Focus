@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const jwt_1 = require("@nestjs/jwt");
 const config_1 = require("@nestjs/config");
+const throttler_1 = require("@nestjs/throttler");
 const auth_service_1 = require("./auth.service");
 const login_dto_1 = require("./dto/login.dto");
 const register_dto_1 = require("./dto/register.dto");
@@ -78,6 +79,7 @@ let AuthController = class AuthController {
 exports.AuthController = AuthController;
 __decorate([
     (0, common_1.Post)('register'),
+    (0, throttler_1.Throttle)({ default: { ttl: 60_000, limit: 5 } }),
     (0, swagger_1.ApiOperation)({ summary: 'Register a new user' }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Res)({ passthrough: true })),
@@ -87,6 +89,7 @@ __decorate([
 ], AuthController.prototype, "register", null);
 __decorate([
     (0, common_1.Post)('login'),
+    (0, throttler_1.Throttle)({ default: { ttl: 60_000, limit: 10 } }),
     (0, swagger_1.ApiOperation)({ summary: 'Login and get JWT tokens' }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Res)({ passthrough: true })),

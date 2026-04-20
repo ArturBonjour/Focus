@@ -20,7 +20,10 @@ export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
   @Get('overview')
-  @ApiOperation({ summary: 'Single-call analytics overview: summary + monthly + trends + time-of-day + week-by-day + score' })
+  @ApiOperation({
+    summary:
+      'Single-call analytics overview: summary + monthly + trends + time-of-day + week-by-day + score',
+  })
   getOverview(@CurrentUser() user: JwtPayload): Promise<OverviewPayload> {
     return this.analyticsService.getOverview(user.sub);
   }
@@ -45,7 +48,9 @@ export class AnalyticsController {
 
   @Get('recommendations')
   @ApiOperation({ summary: 'Get AI-powered behaviour recommendations' })
-  getRecommendations(@CurrentUser() user: JwtPayload): Promise<RecommendationPayload> {
+  getRecommendations(
+    @CurrentUser() user: JwtPayload,
+  ): Promise<RecommendationPayload> {
     return this.analyticsService.getRecommendations(user.sub);
   }
 
@@ -56,7 +61,9 @@ export class AnalyticsController {
   }
 
   @Get('heatmap')
-  @ApiOperation({ summary: 'Full-year GitHub-style activity heatmap (tasks + habits)' })
+  @ApiOperation({
+    summary: 'Full-year GitHub-style activity heatmap (tasks + habits)',
+  })
   getHeatmap(@CurrentUser() user: JwtPayload): Promise<HeatmapDay[]> {
     return this.analyticsService.getHeatmap(user.sub);
   }
