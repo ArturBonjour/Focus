@@ -291,6 +291,73 @@ export class AnalyticsService {
     };
   }
 
+  async getOverview(userId: string): Promise<OverviewPayload> {
+    const [summary, monthly, trends] = await Promise.all([
+      this.getSummary(userId),
+      this.getMonthly(userId),
+      this.getTrends(userId),
+    ]);
+
+    // Activity buckets (time-of-day) + weekByDay from completed tasks
+    const doneTasks = await this.prisma.task.findMany({
+      where: { userId, status: TaskStatus.DONE, completedAt: { not: null } },
+      select: { completedAt: true },
+      orderBy: { completedAt: 'desc' },
+      take: 500,
+    });
+
+    const buckets = { morning: 0, afternoon: 0, evening: 0, night: 0 };
+    const dayBuckets = Array(7).fill(0) as number[];
+
+    doneTasks.forEach((t) => {
+      const h = t.completedAt!.getHours();
+      if (h >= 6 && h < 12) buckets.morning += 1;
+      else if (h >= 12 && h < 18) buckets.afternoon += 1;
+      else if (h >= 18 && h < 24) buckets.evening += 1;
+      else buckets.night += 1;
+      dayBuckets[t.completedAt!.getDay()] += 1;
+    });
+
+    const SHORT = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+    const FULL = [
+      'Воскресенье',
+      'Понедельник',
+      'Вторник',
+      'Среда',
+      'Четверг',
+      'Пятница',
+      'Суббота',
+    ];
+    // Re-order Mon–Sun (index 1..6, 0)
+    const ORDER = [1, 2, 3, 4, 5, 6, 0];
+    const weekByDay: WeekDayPoint[] = ORDER.map((i) => ({
+      day: SHORT[i],
+      fullDay: FULL[i],
+      count: dayBuckets[i],
+    }));
+
+    // Productivity score: composite 0–100
+    // 40% completion rate + 30% habits (capped at 10 streak avg) + 30% velocity (daily avg, capped at 5)
+    const crScore = Math.min(summary.tasks.completionRate, 100);
+    const habitScore = Math.min((summary.habits.avgStreak / 10) * 100, 100);
+    const velocityScore = Math.min(
+      (summary.productivity.avgDailyCompleted / 5) * 100,
+      100,
+    );
+    const productivityScore = Math.round(
+      crScore * 0.4 + habitScore * 0.3 + velocityScore * 0.3,
+    );
+
+    return {
+      summary,
+      monthly,
+      trends,
+      activityBuckets: buckets,
+      weekByDay,
+      productivityScore,
+    };
+  }
+
   async getHeatmap(userId: string): Promise<HeatmapDay[]> {
     const days = 365;
     const now = new Date();
@@ -501,4 +568,24 @@ export interface HeatmapDay {
   count: number; // 0–5+ (tasks done + habit checks, capped for colour scale)
   tasksDone: number;
   habitsDone: number;
+}
+
+export interface WeekDayPoint {
+  day: string; // 'Пн', 'Вт', ...
+  fullDay: string; // 'Понедельник', ...
+  count: number; // completed tasks on this day of week
+}
+
+export interface OverviewPayload {
+  summary: AnalyticsSummary;
+  monthly: ProductivityPoint[];
+  trends: TrendsPayload;
+  activityBuckets: {
+    morning: number;
+    afternoon: number;
+    evening: number;
+    night: number;
+  };
+  weekByDay: WeekDayPoint[];
+  productivityScore: number; // 0–100 composite
 }

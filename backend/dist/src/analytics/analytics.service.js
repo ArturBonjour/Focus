@@ -195,6 +195,61 @@ let AnalyticsService = class AnalyticsService {
             activityBuckets: buckets,
         };
     }
+    async getOverview(userId) {
+        const [summary, monthly, trends] = await Promise.all([
+            this.getSummary(userId),
+            this.getMonthly(userId),
+            this.getTrends(userId),
+        ]);
+        const doneTasks = await this.prisma.task.findMany({
+            where: { userId, status: client_1.TaskStatus.DONE, completedAt: { not: null } },
+            select: { completedAt: true },
+            orderBy: { completedAt: 'desc' },
+            take: 500,
+        });
+        const buckets = { morning: 0, afternoon: 0, evening: 0, night: 0 };
+        const dayBuckets = Array(7).fill(0);
+        doneTasks.forEach((t) => {
+            const h = t.completedAt.getHours();
+            if (h >= 6 && h < 12)
+                buckets.morning += 1;
+            else if (h >= 12 && h < 18)
+                buckets.afternoon += 1;
+            else if (h >= 18 && h < 24)
+                buckets.evening += 1;
+            else
+                buckets.night += 1;
+            dayBuckets[t.completedAt.getDay()] += 1;
+        });
+        const SHORT = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+        const FULL = [
+            'Воскресенье',
+            'Понедельник',
+            'Вторник',
+            'Среда',
+            'Четверг',
+            'Пятница',
+            'Суббота',
+        ];
+        const ORDER = [1, 2, 3, 4, 5, 6, 0];
+        const weekByDay = ORDER.map((i) => ({
+            day: SHORT[i],
+            fullDay: FULL[i],
+            count: dayBuckets[i],
+        }));
+        const crScore = Math.min(summary.tasks.completionRate, 100);
+        const habitScore = Math.min((summary.habits.avgStreak / 10) * 100, 100);
+        const velocityScore = Math.min((summary.productivity.avgDailyCompleted / 5) * 100, 100);
+        const productivityScore = Math.round(crScore * 0.4 + habitScore * 0.3 + velocityScore * 0.3);
+        return {
+            summary,
+            monthly,
+            trends,
+            activityBuckets: buckets,
+            weekByDay,
+            productivityScore,
+        };
+    }
     async getHeatmap(userId) {
         const days = 365;
         const now = new Date();

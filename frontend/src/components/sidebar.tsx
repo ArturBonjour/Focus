@@ -52,6 +52,16 @@ function IconLogout() {
   );
 }
 
+function IconAnalytics() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10"/>
+      <line x1="12" y1="20" x2="12" y2="4"/>
+      <line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
+  );
+}
+
 function IconKanban() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -79,12 +89,14 @@ export function Sidebar() {
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
   const isSettings = pathname === '/settings';
   const isKanban = pathname === '/kanban';
+  const isAnalytics = pathname === '/analytics';
 
   const navItems: { icon: React.ReactNode; label: string; href: string; active?: boolean }[] = [
-    { icon: <IconChart />, label: 'Дашборд', href: '/', active: !isSettings && !isKanban },
+    { icon: <IconChart />, label: 'Дашборд', href: '/', active: !isSettings && !isKanban && !isAnalytics },
     { icon: <IconTasks />, label: 'Задачи', href: '/#tasks-section' },
     { icon: <IconHabits />, label: 'Привычки', href: '/#habits-section' },
     { icon: <IconKanban />, label: 'Kanban', href: '/kanban', active: isKanban },
+    { icon: <IconAnalytics />, label: 'Аналитика', href: '/analytics', active: isAnalytics },
     { icon: <IconTimer />, label: 'Focus Timer', href: '/#focus-timer' },
     { icon: <IconBrain />, label: 'AI Инсайты', href: '/#ai-section' },
     { icon: <IconSettings />, label: 'Настройки', href: '/settings', active: isSettings },

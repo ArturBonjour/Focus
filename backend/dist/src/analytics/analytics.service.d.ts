@@ -42,6 +42,7 @@ export declare class AnalyticsService {
     getMonthly(userId: string): Promise<ProductivityPoint[]>;
     getSummary(userId: string): Promise<AnalyticsSummary>;
     getRecommendations(userId: string): Promise<RecommendationPayload>;
+    getOverview(userId: string): Promise<OverviewPayload>;
     getHeatmap(userId: string): Promise<HeatmapDay[]>;
     private getForPeriod;
     getTrends(userId: string): Promise<TrendsPayload>;
@@ -69,4 +70,22 @@ export interface HeatmapDay {
     count: number;
     tasksDone: number;
     habitsDone: number;
+}
+export interface WeekDayPoint {
+    day: string;
+    fullDay: string;
+    count: number;
+}
+export interface OverviewPayload {
+    summary: AnalyticsSummary;
+    monthly: ProductivityPoint[];
+    trends: TrendsPayload;
+    activityBuckets: {
+        morning: number;
+        afternoon: number;
+        evening: number;
+        night: number;
+    };
+    weekByDay: WeekDayPoint[];
+    productivityScore: number;
 }
