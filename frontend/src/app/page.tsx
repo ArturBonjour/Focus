@@ -37,6 +37,10 @@ export default async function Home() {
   const highPriority = data.tasks.filter((t) => t.priority === 'HIGH' && t.status !== 'DONE').length;
   const totalStreak = data.habits.reduce((acc, h) => acc + h.streak, 0);
 
+  // Due today
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const dueTodayTasks = data.tasks.filter((t) => t.deadline && t.deadline.slice(0, 10) === todayStr && t.status !== 'DONE');
+
   // Sparkline data from weekly chart
   const completedSparkline = data.weekly.map((w) => w.completedTasksCount);
   const totalSparkline = data.weekly.map((w) => w.totalTasksCount);
@@ -168,6 +172,27 @@ export default async function Home() {
           weekly={data.weekly}
           userName={data.user?.name ?? data.user?.email?.split('@')[0] ?? null}
         />
+
+        {/* ── Due Today callout ── */}
+        {dueTodayTasks.length > 0 && (
+          <div className="animate-slide-up" style={{
+            marginBottom: 14, padding: '12px 18px',
+            borderRadius: 14,
+            background: 'linear-gradient(135deg, rgba(239,68,68,0.10) 0%, rgba(245,158,11,0.08) 100%)',
+            border: '1px solid rgba(239,68,68,0.22)',
+            display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+          }}>
+            <span style={{ fontSize: '1.1rem' }}>🔔</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontWeight: 700, fontSize: '0.82rem', color: '#ef4444', marginBottom: 2 }}>
+                Сегодня дедлайн: {dueTodayTasks.length} {dueTodayTasks.length === 1 ? 'задача' : 'задачи'}
+              </p>
+              <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {dueTodayTasks.slice(0, 3).map((t) => t.title).join(' · ')}{dueTodayTasks.length > 3 ? ` +${dueTodayTasks.length - 3}` : ''}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* ── KPI Cards ── */}
         <section className="stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, marginBottom: 20 }}>

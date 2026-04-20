@@ -63,6 +63,60 @@ let HabitsService = class HabitsService {
             data: { completedDays, streak },
         });
     }
+    async getStats(userId) {
+        const habits = await this.prisma.habit.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+        });
+        const today = new Date();
+        const todayStr = today.toISOString().slice(0, 10);
+        return habits.map((h) => {
+            const days = this.extractDays(h);
+            const totalDays = days.length;
+            let longestStreak = 0;
+            let current = 0;
+            const sortedDays = [...days].sort();
+            for (let i = 0; i < sortedDays.length; i++) {
+                if (i === 0) {
+                    current = 1;
+                }
+                else {
+                    const prev = new Date(sortedDays[i - 1]);
+                    const curr = new Date(sortedDays[i]);
+                    const diff = (curr.getTime() - prev.getTime()) / 86_400_000;
+                    current = diff === 1 ? current + 1 : 1;
+                }
+                longestStreak = Math.max(longestStreak, current);
+            }
+            const thirtyDaysAgo = new Date(today);
+            thirtyDaysAgo.setDate(today.getDate() - 29);
+            const last30Dates = new Set(Array.from({ length: 30 }, (_, i) => {
+                const d = new Date(thirtyDaysAgo);
+                d.setDate(thirtyDaysAgo.getDate() + i);
+                return d.toISOString().slice(0, 10);
+            }));
+            const completedLast30 = days.filter((d) => last30Dates.has(d)).length;
+            const completionRate30d = Math.round((completedLast30 / 30) * 100);
+            const sevenDaysAgo = new Date(today);
+            sevenDaysAgo.setDate(today.getDate() - 6);
+            const last7Dates = new Set(Array.from({ length: 7 }, (_, i) => {
+                const d = new Date(sevenDaysAgo);
+                d.setDate(sevenDaysAgo.getDate() + i);
+                return d.toISOString().slice(0, 10);
+            }));
+            const completedLast7 = days.filter((d) => last7Dates.has(d)).length;
+            return {
+                id: h.id,
+                name: h.name,
+                streak: h.streak,
+                longestStreak,
+                totalDays,
+                completionRate30d,
+                completedLast7,
+                completedToday: days.includes(todayStr),
+            };
+        });
+    }
     async remove(userId, habitId) {
         await this.ensureOwnership(userId, habitId);
         await this.prisma.habit.delete({ where: { id: habitId } });

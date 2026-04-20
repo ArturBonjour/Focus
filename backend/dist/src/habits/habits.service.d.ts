@@ -50,10 +50,21 @@ export declare class HabitsService {
         streak: number;
         completedDays: import("@prisma/client/runtime/library").JsonValue;
     }>;
+    getStats(userId: string): Promise<HabitStats[]>;
     remove(userId: string, habitId: string): Promise<{
         success: boolean;
     }>;
     private ensureOwnership;
     private extractDays;
     private calculateStreak;
+}
+export interface HabitStats {
+    id: string;
+    name: string;
+    streak: number;
+    longestStreak: number;
+    totalDays: number;
+    completionRate30d: number;
+    completedLast7: number;
+    completedToday: boolean;
 }

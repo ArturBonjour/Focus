@@ -16,7 +16,7 @@ import type { JwtPayload } from '../auth/strategies/jwt.strategy';
 import { CreateHabitDto } from './dto/create-habit.dto';
 import { TrackHabitDto } from './dto/track-habit.dto';
 import { UpdateHabitDto } from './dto/update-habit.dto';
-import { HabitsService } from './habits.service';
+import { HabitsService, HabitStats } from './habits.service';
 
 @ApiTags('habits')
 @UseGuards(JwtAuthGuard)
@@ -28,6 +28,14 @@ export class HabitsController {
   @ApiOperation({ summary: 'Get all habits' })
   findAll(@CurrentUser() user: JwtPayload): Promise<unknown> {
     return this.habitsService.findAll(user.sub);
+  }
+
+  @Get('stats')
+  @ApiOperation({
+    summary: 'Get per-habit statistics (streak, completion rates, etc.)',
+  })
+  getStats(@CurrentUser() user: JwtPayload): Promise<HabitStats[]> {
+    return this.habitsService.getStats(user.sub);
   }
 
   @Post()

@@ -4,6 +4,8 @@ import {
   Area, AreaChart, Bar, BarChart,
   CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
+import { YearlyHeatmap } from '@/components/yearly-heatmap';
+import { HabitStatsCard } from '@/components/habit-stats-card';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface ProductivityPoint { date: string; completedTasksCount: number; totalTasksCount: number; }
@@ -152,8 +154,10 @@ function EmptyState() {
   );
 }
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 // ─── Main Component ───────────────────────────────────────────────────────────
-export function AnalyticsClient({ overview }: { overview: OverviewPayload | null }) {
+export function AnalyticsClient({ overview, apiUrl, token }: { overview: OverviewPayload | null; apiUrl?: string; token?: string }) {
   if (!overview) return <EmptyState />;
 
   const { summary, monthly, trends, activityBuckets, weekByDay, productivityScore } = overview;
@@ -316,6 +320,18 @@ export function AnalyticsClient({ overview }: { overview: OverviewPayload | null
           ))}
         </div>
       </section>
+
+      {/* ── Row 5: Habit statistics ── */}
+      <HabitStatsCard />
+
+      {/* ── Row 6: Activity heatmap ── */}
+      {(apiUrl && token) && (
+        <section className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '200ms', overflowX: 'auto' }}>
+          <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem', marginBottom: 2 }}>Активность за год</h2>
+          <p style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginBottom: 18 }}>GitHub-style тепловая карта: задачи + привычки</p>
+          <YearlyHeatmap apiUrl={apiUrl} token={token} />
+        </section>
+      )}
 
     </div>
   );

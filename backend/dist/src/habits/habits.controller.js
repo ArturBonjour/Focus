@@ -29,6 +29,9 @@ let HabitsController = class HabitsController {
     findAll(user) {
         return this.habitsService.findAll(user.sub);
     }
+    getStats(user) {
+        return this.habitsService.getStats(user.sub);
+    }
     create(user, dto) {
         return this.habitsService.create(user.sub, dto);
     }
@@ -57,6 +60,16 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], HabitsController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('stats'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get per-habit statistics (streak, completion rates, etc.)',
+    }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], HabitsController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Post)(),
     (0, swagger_1.ApiOperation)({ summary: 'Create a habit' }),

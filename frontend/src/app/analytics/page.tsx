@@ -60,7 +60,7 @@ export default async function AnalyticsPage() {
           </div>
         </header>
 
-        <AnalyticsClient overview={overview} />
+        <AnalyticsClient overview={overview} apiUrl={process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api'} token={token} />
       </main>
     </div>
   );

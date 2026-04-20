@@ -339,6 +339,43 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
           </button>
         </div>
 
+        {/* Export buttons */}
+        {apiUrl && token && (
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
+            {(['csv', 'json'] as const).map((fmt) => (
+              <button
+                key={fmt}
+                onClick={() => {
+                  fetch(`${apiUrl}/tasks/export?format=${fmt}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                  }).then(async (r) => {
+                    const blob = await r.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `tasks-${new Date().toISOString().slice(0, 10)}.${fmt}`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }).catch(() => null);
+                }}
+                title={`Экспорт в ${fmt.toUpperCase()}`}
+                style={{
+                  padding: '4px 10px', borderRadius: 8,
+                  border: '1.5px solid var(--border-strong)',
+                  background: 'var(--bg-base)', color: 'var(--text-secondary)',
+                  fontSize: '0.72rem', cursor: 'pointer', fontWeight: 600,
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  transition: 'all 0.15s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent-1)'; e.currentTarget.style.color = 'var(--accent-1)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-strong)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+              >
+                ↓ {fmt.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Bulk select-all */}
         {visible.length > 0 && (
           <>
