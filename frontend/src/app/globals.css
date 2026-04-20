@@ -132,9 +132,32 @@ body {
   }
   .main-content {
     margin-left: 0;
-    padding: 20px 16px;
+    padding: 20px 16px 80px; /* bottom padding for mobile nav */
   }
 }
+
+/* ─── Mobile bottom navigation ────────────────────────────────── */
+.mobile-bottom-nav {
+  display: none;
+}
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 50;
+    background: var(--bg-sidebar);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 6px 8px;
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+    gap: 2px;
+    justify-content: space-around;
+    align-items: center;
+  }
+}
+
 
 /* ─── Buttons ────────────────────────────────────────────────── */
 .btn {

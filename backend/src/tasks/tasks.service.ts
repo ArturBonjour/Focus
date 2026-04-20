@@ -16,10 +16,15 @@ export interface TaskStats {
   completionRate: number;
 }
 
+export type SortBy = 'createdAt' | 'deadline' | 'priority' | 'title';
+export type Order = 'asc' | 'desc';
+
 export interface TaskFilter {
   status?: TaskStatus;
   priority?: TaskPriority;
   search?: string;
+  sortBy?: SortBy;
+  order?: Order;
 }
 
 export interface BulkUpdateDto {
@@ -48,10 +53,30 @@ export class TasksService {
       ];
     }
 
-    return this.prisma.task.findMany({
-      where,
-      orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
-    });
+    const PRIORITY_SORT_MAP: Record<string, string> = { HIGH: 'asc', MEDIUM: 'asc', LOW: 'asc' };
+    void PRIORITY_SORT_MAP; // suppress unused
+    const dir = filter.order ?? 'desc';
+    // Build orderBy as a plain object array to avoid generic parameter issues
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let orderBy: any[];
+    switch (filter.sortBy) {
+      case 'deadline':
+        orderBy = [{ deadline: { sort: dir, nulls: 'last' } }, { createdAt: 'desc' }];
+        break;
+      case 'priority':
+        orderBy = [{ priority: dir === 'asc' ? 'desc' : 'asc' }, { createdAt: 'desc' }];
+        break;
+      case 'title':
+        orderBy = [{ title: dir }, { createdAt: 'desc' }];
+        break;
+      case 'createdAt':
+      default:
+        orderBy = [{ createdAt: dir }];
+        break;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    return this.prisma.task.findMany({ where, orderBy });
   }
 
   async getStats(userId: string): Promise<TaskStats> {

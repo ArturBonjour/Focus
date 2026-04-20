@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ThemeScript } from '@/components/theme-script';
 import { RouteProgress } from '@/components/route-progress';
+import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 
 export const metadata: Metadata = {
   title: { default: 'NeuroTrack', template: '%s | NeuroTrack' },
@@ -43,9 +44,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <RouteProgress />
         {children}
+        <MobileBottomNav />
       </body>
     </html>
   );
 }
-
-

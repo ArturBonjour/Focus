@@ -20,10 +20,7 @@ export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
   @Get('overview')
-  @ApiOperation({
-    summary:
-      'Single-call analytics overview: summary + monthly + trends + time-of-day + week-by-day + score',
-  })
+  @ApiOperation({ summary: 'Single-call analytics overview: summary + monthly + trends + time-of-day + week-by-day + score' })
   getOverview(@CurrentUser() user: JwtPayload): Promise<OverviewPayload> {
     return this.analyticsService.getOverview(user.sub);
   }
@@ -48,9 +45,7 @@ export class AnalyticsController {
 
   @Get('recommendations')
   @ApiOperation({ summary: 'Get AI-powered behaviour recommendations' })
-  getRecommendations(
-    @CurrentUser() user: JwtPayload,
-  ): Promise<RecommendationPayload> {
+  getRecommendations(@CurrentUser() user: JwtPayload): Promise<RecommendationPayload> {
     return this.analyticsService.getRecommendations(user.sub);
   }
 
@@ -61,56 +56,7 @@ export class AnalyticsController {
   }
 
   @Get('heatmap')
-  @ApiOperation({
-    summary: 'Full-year GitHub-style activity heatmap (tasks + habits)',
-  })
-  getHeatmap(@CurrentUser() user: JwtPayload): Promise<HeatmapDay[]> {
-    return this.analyticsService.getHeatmap(user.sub);
-  }
-}
-
-@ApiTags('analytics')
-@UseGuards(JwtAuthGuard)
-@Controller('analytics')
-export class AnalyticsController {
-  constructor(private readonly analyticsService: AnalyticsService) {}
-
-  @Get('weekly')
-  @ApiOperation({ summary: 'Get weekly productivity chart data' })
-  getWeekly(@CurrentUser() user: JwtPayload): Promise<ProductivityPoint[]> {
-    return this.analyticsService.getWeekly(user.sub);
-  }
-
-  @Get('monthly')
-  @ApiOperation({ summary: 'Get monthly productivity chart data' })
-  getMonthly(@CurrentUser() user: JwtPayload): Promise<ProductivityPoint[]> {
-    return this.analyticsService.getMonthly(user.sub);
-  }
-
-  @Get('summary')
-  @ApiOperation({ summary: 'Get comprehensive analytics summary' })
-  getSummary(@CurrentUser() user: JwtPayload): Promise<AnalyticsSummary> {
-    return this.analyticsService.getSummary(user.sub);
-  }
-
-  @Get('recommendations')
-  @ApiOperation({ summary: 'Get AI-powered behaviour recommendations' })
-  getRecommendations(
-    @CurrentUser() user: JwtPayload,
-  ): Promise<RecommendationPayload> {
-    return this.analyticsService.getRecommendations(user.sub);
-  }
-
-  @Get('trends')
-  @ApiOperation({ summary: 'Week-over-week trends comparison' })
-  getTrends(@CurrentUser() user: JwtPayload): Promise<TrendsPayload> {
-    return this.analyticsService.getTrends(user.sub);
-  }
-
-  @Get('heatmap')
-  @ApiOperation({
-    summary: 'Full-year GitHub-style activity heatmap (tasks + habits)',
-  })
+  @ApiOperation({ summary: 'Full-year GitHub-style activity heatmap (tasks + habits)' })
   getHeatmap(@CurrentUser() user: JwtPayload): Promise<HeatmapDay[]> {
     return this.analyticsService.getHeatmap(user.sub);
   }

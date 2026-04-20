@@ -11,13 +11,3 @@ export declare class AnalyticsController {
     getTrends(user: JwtPayload): Promise<TrendsPayload>;
     getHeatmap(user: JwtPayload): Promise<HeatmapDay[]>;
 }
-export declare class AnalyticsController {
-    private readonly analyticsService;
-    constructor(analyticsService: AnalyticsService);
-    getWeekly(user: JwtPayload): Promise<ProductivityPoint[]>;
-    getMonthly(user: JwtPayload): Promise<ProductivityPoint[]>;
-    getSummary(user: JwtPayload): Promise<AnalyticsSummary>;
-    getRecommendations(user: JwtPayload): Promise<RecommendationPayload>;
-    getTrends(user: JwtPayload): Promise<TrendsPayload>;
-    getHeatmap(user: JwtPayload): Promise<HeatmapDay[]>;
-}

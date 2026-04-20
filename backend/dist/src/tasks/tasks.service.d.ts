@@ -13,10 +13,14 @@ export interface TaskStats {
     overdueCount: number;
     completionRate: number;
 }
+export type SortBy = 'createdAt' | 'deadline' | 'priority' | 'title';
+export type Order = 'asc' | 'desc';
 export interface TaskFilter {
     status?: TaskStatus;
     priority?: TaskPriority;
     search?: string;
+    sortBy?: SortBy;
+    order?: Order;
 }
 export interface BulkUpdateDto {
     ids: string[];

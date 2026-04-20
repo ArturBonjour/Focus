@@ -6,6 +6,7 @@ import { TaskCard } from './task-card';
 import { toast } from './toast';
 
 type Filter = 'ALL' | 'TODO' | 'IN_PROGRESS' | 'DONE';
+type SortBy = 'createdAt' | 'deadline' | 'priority' | 'title';
 
 const FILTERS: { value: Filter; label: string; emoji: string }[] = [
   { value: 'ALL',         label: 'Все',          emoji: '📋' },
@@ -13,6 +14,40 @@ const FILTERS: { value: Filter; label: string; emoji: string }[] = [
   { value: 'IN_PROGRESS', label: 'В процессе',   emoji: '⚡' },
   { value: 'DONE',        label: 'Готово',       emoji: '✅' },
 ];
+
+const SORT_OPTIONS: { value: SortBy; label: string }[] = [
+  { value: 'createdAt', label: 'Дата создания' },
+  { value: 'priority',  label: 'Приоритет' },
+  { value: 'deadline',  label: 'Дедлайн' },
+  { value: 'title',     label: 'Название' },
+];
+
+const PRIORITY_WEIGHT: Record<Task['priority'], number> = { HIGH: 3, MEDIUM: 2, LOW: 1 };
+
+function sortTasks(tasks: Task[], sortBy: SortBy, order: 'asc' | 'desc'): Task[] {
+  return [...tasks].sort((a, b) => {
+    let cmp = 0;
+    switch (sortBy) {
+      case 'priority':
+        cmp = PRIORITY_WEIGHT[b.priority] - PRIORITY_WEIGHT[a.priority];
+        break;
+      case 'deadline': {
+        const da = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+        const db = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+        cmp = da - db;
+        break;
+      }
+      case 'title':
+        cmp = a.title.localeCompare(b.title, 'ru');
+        break;
+      case 'createdAt':
+      default:
+        cmp = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        break;
+    }
+    return order === 'asc' ? cmp : -cmp;
+  });
+}
 
 interface TaskFilterBarProps {
   tasks: Task[];
@@ -25,6 +60,8 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [sortBy, setSortBy] = useState<SortBy>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const counts: Record<Filter, number> = {
     ALL:         tasks.length,
@@ -33,7 +70,8 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
     DONE:        tasks.filter((t) => t.status === 'DONE').length,
   };
 
-  const visible = active === 'ALL' ? tasks : tasks.filter((t) => t.status === active);
+  const filtered = active === 'ALL' ? tasks : tasks.filter((t) => t.status === active);
+  const visible = sortTasks(filtered, sortBy, sortOrder);
 
   function toggleSelect(id: string) {
     setSelected((prev) => {
@@ -53,13 +91,16 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
 
   function clearSelection() { setSelected(new Set()); }
 
+  function toggleSortOrder() {
+    setSortOrder((o) => o === 'asc' ? 'desc' : 'asc');
+  }
+
   async function bulkAction(action: 'complete' | 'delete') {
     if (selected.size === 0) return;
     setBulkLoading(true);
     const ids = [...selected];
     try {
       if (!token || !apiUrl) {
-        // Demo mode
         if (action === 'delete') {
           setTasks((prev) => prev.filter((t) => !ids.includes(t.id)));
           toast.info(`Удалено ${ids.length} задач`);
@@ -117,7 +158,7 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
         display: 'flex', gap: 4,
         background: 'var(--border)',
         borderRadius: 12, padding: 3,
-        marginBottom: 12,
+        marginBottom: 8,
         overflowX: 'auto',
       }}>
         {FILTERS.map((f) => (
@@ -155,83 +196,114 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
         ))}
       </div>
 
-      {/* Bulk actions bar */}
-      {visible.length > 0 && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          marginBottom: 8, minHeight: 28,
-          transition: 'all 0.2s',
-        }}>
-          {/* Select all checkbox */}
-          <button
-            onClick={toggleSelectAll}
-            title={selected.size === visible.length ? 'Снять выделение' : 'Выбрать все'}
+      {/* Sort + Bulk actions bar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+        {/* Sort controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginRight: 4 }}>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortBy)}
             style={{
-              width: 18, height: 18, borderRadius: 4, flexShrink: 0,
-              border: `2px solid ${selected.size > 0 ? 'var(--accent-1)' : 'var(--border-strong)'}`,
-              background: selected.size === visible.length ? 'var(--accent-1)' : selected.size > 0 ? 'rgba(99,102,241,0.15)' : 'transparent',
-              cursor: 'pointer', padding: 0,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'all 0.15s',
+              padding: '4px 8px', borderRadius: 8,
+              border: '1.5px solid var(--border-strong)',
+              background: 'var(--bg-base)', color: 'var(--text-secondary)',
+              fontSize: '0.72rem', cursor: 'pointer',
+              outline: 'none', fontFamily: 'inherit',
+            }}
+            aria-label="Сортировка"
+          >
+            {SORT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+          <button
+            onClick={toggleSortOrder}
+            title={sortOrder === 'asc' ? 'По возрастанию' : 'По убыванию'}
+            style={{
+              width: 26, height: 26, borderRadius: 7,
+              border: '1.5px solid var(--border-strong)',
+              background: 'var(--bg-base)', color: 'var(--text-secondary)',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '0.75rem', transition: 'all 0.15s',
             }}
           >
-            {selected.size > 0 && (
-              <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                {selected.size === visible.length
-                  ? <polyline points="2,6 5,9 10,3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  : <line x1="2" y1="6" x2="10" y2="6" stroke="var(--accent-1)" strokeWidth="2" strokeLinecap="round"/>
-                }
-              </svg>
-            )}
+            {sortOrder === 'asc' ? '↑' : '↓'}
           </button>
-
-          {selected.size > 0 ? (
-            <>
-              <span style={{ fontSize: '0.72rem', color: 'var(--accent-1)', fontWeight: 600 }}>
-                {selected.size} выбрано
-              </span>
-              <button
-                onClick={() => { void bulkAction('complete'); }}
-                disabled={bulkLoading}
-                style={{
-                  padding: '3px 10px', borderRadius: 7, border: 'none', cursor: 'pointer',
-                  background: 'rgba(16,185,129,0.12)', color: '#059669',
-                  fontSize: '0.72rem', fontWeight: 600, transition: 'all 0.12s',
-                  opacity: bulkLoading ? 0.5 : 1,
-                }}
-              >
-                ✓ Выполнить
-              </button>
-              <button
-                onClick={() => { void bulkAction('delete'); }}
-                disabled={bulkLoading}
-                style={{
-                  padding: '3px 10px', borderRadius: 7, border: 'none', cursor: 'pointer',
-                  background: 'rgba(239,68,68,0.10)', color: '#dc2626',
-                  fontSize: '0.72rem', fontWeight: 600, transition: 'all 0.12s',
-                  opacity: bulkLoading ? 0.5 : 1,
-                }}
-              >
-                🗑 Удалить
-              </button>
-              <button
-                onClick={clearSelection}
-                style={{
-                  padding: '3px 8px', borderRadius: 7, border: 'none', cursor: 'pointer',
-                  background: 'transparent', color: 'var(--text-tertiary)',
-                  fontSize: '0.68rem', transition: 'all 0.12s',
-                }}
-              >
-                ✕ Отмена
-              </button>
-            </>
-          ) : (
-            <span style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)' }}>
-              Выберите задачи для групповых действий
-            </span>
-          )}
         </div>
-      )}
+
+        {/* Bulk select-all */}
+        {visible.length > 0 && (
+          <>
+            <button
+              onClick={toggleSelectAll}
+              title={selected.size === visible.length ? 'Снять выделение' : 'Выбрать все'}
+              style={{
+                width: 18, height: 18, borderRadius: 4, flexShrink: 0,
+                border: `2px solid ${selected.size > 0 ? 'var(--accent-1)' : 'var(--border-strong)'}`,
+                background: selected.size === visible.length ? 'var(--accent-1)' : selected.size > 0 ? 'rgba(99,102,241,0.15)' : 'transparent',
+                cursor: 'pointer', padding: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.15s',
+              }}
+            >
+              {selected.size > 0 && (
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                  {selected.size === visible.length
+                    ? <polyline points="2,6 5,9 10,3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    : <line x1="2" y1="6" x2="10" y2="6" stroke="var(--accent-1)" strokeWidth="2" strokeLinecap="round"/>
+                  }
+                </svg>
+              )}
+            </button>
+
+            {selected.size > 0 ? (
+              <>
+                <span style={{ fontSize: '0.72rem', color: 'var(--accent-1)', fontWeight: 600 }}>
+                  {selected.size} выбрано
+                </span>
+                <button
+                  onClick={() => { void bulkAction('complete'); }}
+                  disabled={bulkLoading}
+                  style={{
+                    padding: '3px 10px', borderRadius: 7, border: 'none', cursor: 'pointer',
+                    background: 'rgba(16,185,129,0.12)', color: '#059669',
+                    fontSize: '0.72rem', fontWeight: 600, transition: 'all 0.12s',
+                    opacity: bulkLoading ? 0.5 : 1,
+                  }}
+                >
+                  ✓ Выполнить
+                </button>
+                <button
+                  onClick={() => { void bulkAction('delete'); }}
+                  disabled={bulkLoading}
+                  style={{
+                    padding: '3px 10px', borderRadius: 7, border: 'none', cursor: 'pointer',
+                    background: 'rgba(239,68,68,0.10)', color: '#dc2626',
+                    fontSize: '0.72rem', fontWeight: 600, transition: 'all 0.12s',
+                    opacity: bulkLoading ? 0.5 : 1,
+                  }}
+                >
+                  🗑 Удалить
+                </button>
+                <button
+                  onClick={clearSelection}
+                  style={{
+                    padding: '3px 8px', borderRadius: 7, border: 'none', cursor: 'pointer',
+                    background: 'transparent', color: 'var(--text-tertiary)',
+                    fontSize: '0.68rem', transition: 'all 0.12s',
+                  }}
+                >
+                  ✕
+                </button>
+              </>
+            ) : (
+              <span style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)' }}>
+                {visible.length} задач
+              </span>
+            )}
+          </>
+        )}
+      </div>
 
       {/* Task list */}
       {visible.length === 0 ? (
@@ -248,7 +320,6 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
         <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {visible.map((task) => (
             <div key={task.id} className="animate-slide-up" style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-              {/* Per-row checkbox */}
               <button
                 onClick={() => toggleSelect(task.id)}
                 style={{
@@ -284,4 +355,3 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
     </div>
   );
 }
-

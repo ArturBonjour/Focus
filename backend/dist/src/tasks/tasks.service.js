@@ -32,10 +32,26 @@ let TasksService = class TasksService {
                 { description: { contains: filter.search, mode: 'insensitive' } },
             ];
         }
-        return this.prisma.task.findMany({
-            where,
-            orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
-        });
+        const PRIORITY_SORT_MAP = { HIGH: 'asc', MEDIUM: 'asc', LOW: 'asc' };
+        void PRIORITY_SORT_MAP;
+        const dir = filter.order ?? 'desc';
+        let orderBy;
+        switch (filter.sortBy) {
+            case 'deadline':
+                orderBy = [{ deadline: { sort: dir, nulls: 'last' } }, { createdAt: 'desc' }];
+                break;
+            case 'priority':
+                orderBy = [{ priority: dir === 'asc' ? 'desc' : 'asc' }, { createdAt: 'desc' }];
+                break;
+            case 'title':
+                orderBy = [{ title: dir }, { createdAt: 'desc' }];
+                break;
+            case 'createdAt':
+            default:
+                orderBy = [{ createdAt: dir }];
+                break;
+        }
+        return this.prisma.task.findMany({ where, orderBy });
     }
     async getStats(userId) {
         const tasks = await this.prisma.task.findMany({
