@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { Task } from '@/lib/api';
 import { TaskCard } from './task-card';
+import { toast } from './toast';
 
 type Filter = 'ALL' | 'TODO' | 'IN_PROGRESS' | 'DONE';
 
@@ -22,6 +23,8 @@ interface TaskFilterBarProps {
 export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilterBarProps) {
   const [active, setActive] = useState<Filter>('ALL');
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   const counts: Record<Filter, number> = {
     ALL:         tasks.length,
@@ -32,12 +35,79 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
 
   const visible = active === 'ALL' ? tasks : tasks.filter((t) => t.status === active);
 
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selected.size === visible.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(visible.map((t) => t.id)));
+    }
+  }
+
+  function clearSelection() { setSelected(new Set()); }
+
+  async function bulkAction(action: 'complete' | 'delete') {
+    if (selected.size === 0) return;
+    setBulkLoading(true);
+    const ids = [...selected];
+    try {
+      if (!token || !apiUrl) {
+        // Demo mode
+        if (action === 'delete') {
+          setTasks((prev) => prev.filter((t) => !ids.includes(t.id)));
+          toast.info(`Удалено ${ids.length} задач`);
+        } else {
+          setTasks((prev) => prev.map((t) => ids.includes(t.id) ? { ...t, status: 'DONE' as const } : t));
+          toast.success(`Выполнено ${ids.length} задач 🎯`);
+        }
+        clearSelection();
+        return;
+      }
+
+      const res = await fetch(`${apiUrl}/tasks/bulk`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          action === 'delete'
+            ? { ids, delete: true }
+            : { ids, status: 'DONE' }
+        ),
+      });
+      if (!res.ok) throw new Error('Bulk action failed');
+
+      if (action === 'delete') {
+        setTasks((prev) => prev.filter((t) => !ids.includes(t.id)));
+        toast.info(`Удалено ${ids.length} задач`);
+      } else {
+        setTasks((prev) => prev.map((t) => ids.includes(t.id) ? { ...t, status: 'DONE' as const } : t));
+        toast.success(`Выполнено ${ids.length} задач 🎯`);
+      }
+      clearSelection();
+    } catch {
+      toast.error('Не удалось выполнить массовое действие');
+    } finally {
+      setBulkLoading(false);
+    }
+  }
+
   function handleDelete(id: string) {
     setTasks((prev) => prev.filter((t) => t.id !== id));
+    setSelected((prev) => { const n = new Set(prev); n.delete(id); return n; });
   }
 
   function handleDuplicate(newTask: Task) {
     setTasks((prev) => [...prev, newTask]);
+  }
+
+  function handleUpdate(updated: Task) {
+    setTasks((prev) => prev.map((t) => t.id === updated.id ? updated : t));
   }
 
   return (
@@ -53,7 +123,7 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
         {FILTERS.map((f) => (
           <button
             key={f.value}
-            onClick={() => setActive(f.value)}
+            onClick={() => { setActive(f.value); clearSelection(); }}
             style={{
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '5px 10px',
@@ -85,6 +155,84 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
         ))}
       </div>
 
+      {/* Bulk actions bar */}
+      {visible.length > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          marginBottom: 8, minHeight: 28,
+          transition: 'all 0.2s',
+        }}>
+          {/* Select all checkbox */}
+          <button
+            onClick={toggleSelectAll}
+            title={selected.size === visible.length ? 'Снять выделение' : 'Выбрать все'}
+            style={{
+              width: 18, height: 18, borderRadius: 4, flexShrink: 0,
+              border: `2px solid ${selected.size > 0 ? 'var(--accent-1)' : 'var(--border-strong)'}`,
+              background: selected.size === visible.length ? 'var(--accent-1)' : selected.size > 0 ? 'rgba(99,102,241,0.15)' : 'transparent',
+              cursor: 'pointer', padding: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.15s',
+            }}
+          >
+            {selected.size > 0 && (
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                {selected.size === visible.length
+                  ? <polyline points="2,6 5,9 10,3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  : <line x1="2" y1="6" x2="10" y2="6" stroke="var(--accent-1)" strokeWidth="2" strokeLinecap="round"/>
+                }
+              </svg>
+            )}
+          </button>
+
+          {selected.size > 0 ? (
+            <>
+              <span style={{ fontSize: '0.72rem', color: 'var(--accent-1)', fontWeight: 600 }}>
+                {selected.size} выбрано
+              </span>
+              <button
+                onClick={() => { void bulkAction('complete'); }}
+                disabled={bulkLoading}
+                style={{
+                  padding: '3px 10px', borderRadius: 7, border: 'none', cursor: 'pointer',
+                  background: 'rgba(16,185,129,0.12)', color: '#059669',
+                  fontSize: '0.72rem', fontWeight: 600, transition: 'all 0.12s',
+                  opacity: bulkLoading ? 0.5 : 1,
+                }}
+              >
+                ✓ Выполнить
+              </button>
+              <button
+                onClick={() => { void bulkAction('delete'); }}
+                disabled={bulkLoading}
+                style={{
+                  padding: '3px 10px', borderRadius: 7, border: 'none', cursor: 'pointer',
+                  background: 'rgba(239,68,68,0.10)', color: '#dc2626',
+                  fontSize: '0.72rem', fontWeight: 600, transition: 'all 0.12s',
+                  opacity: bulkLoading ? 0.5 : 1,
+                }}
+              >
+                🗑 Удалить
+              </button>
+              <button
+                onClick={clearSelection}
+                style={{
+                  padding: '3px 8px', borderRadius: 7, border: 'none', cursor: 'pointer',
+                  background: 'transparent', color: 'var(--text-tertiary)',
+                  fontSize: '0.68rem', transition: 'all 0.12s',
+                }}
+              >
+                ✕ Отмена
+              </button>
+            </>
+          ) : (
+            <span style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)' }}>
+              Выберите задачи для групповых действий
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Task list */}
       {visible.length === 0 ? (
         <div style={{
@@ -99,14 +247,36 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
       ) : (
         <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {visible.map((task) => (
-            <div key={task.id} className="animate-slide-up">
-              <TaskCard
-                task={task}
-                apiUrl={apiUrl}
-                token={token}
-                onDelete={handleDelete}
-                onDuplicate={handleDuplicate}
-              />
+            <div key={task.id} className="animate-slide-up" style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+              {/* Per-row checkbox */}
+              <button
+                onClick={() => toggleSelect(task.id)}
+                style={{
+                  marginTop: 14, width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                  border: `2px solid ${selected.has(task.id) ? 'var(--accent-1)' : 'var(--border-strong)'}`,
+                  background: selected.has(task.id) ? 'var(--accent-1)' : 'transparent',
+                  cursor: 'pointer', padding: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.15s',
+                }}
+                aria-label={selected.has(task.id) ? 'Снять выделение' : 'Выбрать задачу'}
+              >
+                {selected.has(task.id) && (
+                  <svg width="8" height="8" viewBox="0 0 12 12" fill="none">
+                    <polyline points="2,6 5,9 10,3" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </button>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <TaskCard
+                  task={task}
+                  apiUrl={apiUrl}
+                  token={token}
+                  onDelete={handleDelete}
+                  onDuplicate={handleDuplicate}
+                  onUpdate={handleUpdate}
+                />
+              </div>
             </div>
           ))}
         </div>
@@ -114,3 +284,4 @@ export function TaskFilterBar({ tasks: initialTasks, apiUrl, token }: TaskFilter
     </div>
   );
 }
+

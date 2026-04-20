@@ -14,6 +14,8 @@ export declare class TelegramService {
             status: import("@prisma/client").$Enums.TaskStatus;
             deadline: Date | null;
             completedAt: Date | null;
+            tags: string[];
+            subtasks: import("@prisma/client/runtime/library").JsonValue;
             userId: string;
         };
         tasks?: undefined;
@@ -29,6 +31,8 @@ export declare class TelegramService {
             status: import("@prisma/client").$Enums.TaskStatus;
             deadline: Date | null;
             completedAt: Date | null;
+            tags: string[];
+            subtasks: import("@prisma/client/runtime/library").JsonValue;
             userId: string;
         }[];
         task?: undefined;

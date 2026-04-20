@@ -221,6 +221,56 @@ export function TaskCard({ task, apiUrl, token, onDelete, onDuplicate, onUpdate 
           </button>
         </div>
 
+        {/* Tags */}
+        {taskData.tags && taskData.tags.length > 0 && (
+          <div style={{ display: 'flex', gap: 4, marginTop: 5, flexWrap: 'wrap' }}>
+            {taskData.tags.map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  display: 'inline-flex', alignItems: 'center',
+                  padding: '1px 7px',
+                  borderRadius: 999,
+                  fontSize: '0.65rem', fontWeight: 600,
+                  background: `hsl(${hashTag(tag)}, 70%, 15%)`,
+                  color: `hsl(${hashTag(tag)}, 75%, 70%)`,
+                  border: `1px solid hsl(${hashTag(tag)}, 65%, 30%)`,
+                  letterSpacing: '0.01em',
+                }}
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Subtask progress */}
+        {taskData.subtasks && taskData.subtasks.length > 0 && (() => {
+          const total = taskData.subtasks.length;
+          const done = taskData.subtasks.filter((s) => s.done).length;
+          const pct = Math.round((done / total) * 100);
+          return (
+            <div style={{ marginTop: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                <span style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)' }}>
+                  ✓ {done}/{total} подзадач
+                </span>
+                <span style={{ fontSize: '0.65rem', color: pct === 100 ? '#10b981' : 'var(--text-tertiary)', fontWeight: 600 }}>
+                  {pct}%
+                </span>
+              </div>
+              <div style={{ height: 2, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%', borderRadius: 99,
+                  background: pct === 100 ? '#10b981' : 'var(--accent-gradient)',
+                  width: `${pct}%`,
+                  transition: 'width 0.4s var(--ease)',
+                }} />
+              </div>
+            </div>
+          );
+        })()}
+
         <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>
             <span style={{ color: priorityColors[taskData.priority], fontWeight: 600 }}>{priorityLabel[taskData.priority]}</span>
@@ -303,3 +353,11 @@ export function TaskCard({ task, apiUrl, token, onDelete, onDuplicate, onUpdate 
     </>
   );
 }
+
+/** Simple hash for deterministic tag colors */
+function hashTag(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0xffff;
+  return (h * 137) % 360;
+}
+

@@ -1,12 +1,28 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ThemeScript } from '@/components/theme-script';
+import { RouteProgress } from '@/components/route-progress';
 
 export const metadata: Metadata = {
   title: { default: 'NeuroTrack', template: '%s | NeuroTrack' },
   description: 'Интеллектуальная система планирования и анализа продуктивности',
-  icons: { icon: '/favicon.ico' },
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'NeuroTrack',
+  },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/icon-192.png',
+  },
   keywords: ['продуктивность', 'задачи', 'привычки', 'фокус', 'планирование'],
+  openGraph: {
+    title: 'NeuroTrack — AI Productivity',
+    description: 'Интеллектуальная система планирования и анализа продуктивности',
+    type: 'website',
+    locale: 'ru_RU',
+  },
 };
 
 export const viewport: Viewport = {
@@ -24,7 +40,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <ThemeScript />
       </head>
-      <body>{children}</body>
+      <body>
+        <RouteProgress />
+        {children}
+      </body>
     </html>
   );
 }
+
+

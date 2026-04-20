@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Task } from '@/lib/api';
+import type { Task, Subtask } from '@/lib/api';
 import { toast } from './toast';
 
 interface TaskEditModalProps {
@@ -18,12 +18,56 @@ const PRIORITIES = [
   { value: 'HIGH',   label: 'Высокий',  color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
 ] as const;
 
+const TAG_PRESETS = ['работа', 'личное', 'urgent', 'dev', 'meeting', 'review', 'docs', 'идея'];
+
+function hashTag(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0xffff;
+  return (h * 137) % 360;
+}
+
+let subtaskIdCounter = Date.now();
+function nextSubtaskId() { return `st_${++subtaskIdCounter}`; }
+
 export function TaskEditModal({ task, apiUrl, token, onUpdated, onClose }: TaskEditModalProps) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? '');
   const [priority, setPriority] = useState<Task['priority']>(task.priority);
   const [deadline, setDeadline] = useState(task.deadline ? task.deadline.slice(0, 16) : '');
   const [saving, setSaving] = useState(false);
+
+  // Tags state
+  const [tags, setTags] = useState<string[]>(task.tags ?? []);
+  const [tagInput, setTagInput] = useState('');
+
+  // Subtasks state
+  const [subtasks, setSubtasks] = useState<Subtask[]>(task.subtasks ?? []);
+  const [subtaskInput, setSubtaskInput] = useState('');
+
+  function addTag(tag: string) {
+    const t = tag.trim().toLowerCase().replace(/\s+/g, '-').slice(0, 30);
+    if (t && !tags.includes(t)) setTags((prev) => [...prev, t]);
+    setTagInput('');
+  }
+
+  function removeTag(tag: string) {
+    setTags((prev) => prev.filter((t) => t !== tag));
+  }
+
+  function addSubtask() {
+    const t = subtaskInput.trim();
+    if (!t) return;
+    setSubtasks((prev) => [...prev, { id: nextSubtaskId(), title: t, done: false }]);
+    setSubtaskInput('');
+  }
+
+  function toggleSubtask(id: string) {
+    setSubtasks((prev) => prev.map((s) => s.id === id ? { ...s, done: !s.done } : s));
+  }
+
+  function removeSubtask(id: string) {
+    setSubtasks((prev) => prev.filter((s) => s.id !== id));
+  }
 
   async function handleSave() {
     if (!title.trim()) { toast.error('Название задачи обязательно'); return; }
@@ -33,11 +77,12 @@ export function TaskEditModal({ task, apiUrl, token, onUpdated, onClose }: TaskE
       description: description.trim() || undefined,
       priority,
       deadline: deadline ? new Date(deadline).toISOString() : null,
+      tags,
+      subtasks,
     };
 
     try {
       if (!token || !apiUrl) {
-        // Demo mode
         await new Promise((r) => setTimeout(r, 200));
         onUpdated({ ...task, ...payload, deadline: payload.deadline ?? null });
         toast.success('Задача обновлена', title);
@@ -61,6 +106,17 @@ export function TaskEditModal({ task, apiUrl, token, onUpdated, onClose }: TaskE
     }
   }
 
+  const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '10px 14px',
+    borderRadius: 10, border: '1px solid var(--border-strong)',
+    background: 'var(--bg-base)', color: 'var(--text-primary)',
+    fontSize: '0.875rem', outline: 'none',
+    transition: 'border-color 0.15s', fontFamily: 'inherit',
+  };
+
+  const doneSub = subtasks.filter((s) => s.done).length;
+  const totalSub = subtasks.length;
+
   return (
     <>
       {/* Backdrop */}
@@ -83,7 +139,9 @@ export function TaskEditModal({ task, apiUrl, token, onUpdated, onClose }: TaskE
           position: 'fixed', top: '50%', left: '50%',
           transform: 'translate(-50%, -50%)',
           zIndex: 310,
-          width: 'min(540px, calc(100vw - 32px))',
+          width: 'min(580px, calc(100vw - 32px))',
+          maxHeight: 'calc(100dvh - 48px)',
+          overflowY: 'auto',
           background: 'var(--bg-card)',
           backdropFilter: 'blur(24px)',
           border: '1px solid var(--border-strong)',
@@ -115,14 +173,8 @@ export function TaskEditModal({ task, apiUrl, token, onUpdated, onClose }: TaskE
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') onClose(); }}
-            style={{
-              width: '100%', padding: '10px 14px',
-              borderRadius: 10, border: '1px solid var(--border-strong)',
-              background: 'var(--bg-base)', color: 'var(--text-primary)',
-              fontSize: '0.9rem', fontWeight: 500, outline: 'none',
-              transition: 'border-color 0.15s',
-            }}
+            onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
+            style={{ ...inputStyle, fontWeight: 500, fontSize: '0.9rem' }}
             onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--accent-1)'; }}
             onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--border-strong)'; }}
             placeholder="Название задачи"
@@ -139,13 +191,7 @@ export function TaskEditModal({ task, apiUrl, token, onUpdated, onClose }: TaskE
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            style={{
-              width: '100%', padding: '10px 14px',
-              borderRadius: 10, border: '1px solid var(--border-strong)',
-              background: 'var(--bg-base)', color: 'var(--text-primary)',
-              fontSize: '0.875rem', resize: 'vertical', outline: 'none',
-              transition: 'border-color 0.15s', lineHeight: 1.55, fontFamily: 'inherit',
-            }}
+            style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.55 }}
             onFocus={(e) => { (e.target as HTMLTextAreaElement).style.borderColor = 'var(--accent-1)'; }}
             onBlur={(e) => { (e.target as HTMLTextAreaElement).style.borderColor = 'var(--border-strong)'; }}
             placeholder="Опциональное описание…"
@@ -153,8 +199,7 @@ export function TaskEditModal({ task, apiUrl, token, onUpdated, onClose }: TaskE
         </div>
 
         {/* Priority + Deadline */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 22 }}>
-          {/* Priority */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>
               Приоритет
@@ -178,7 +223,6 @@ export function TaskEditModal({ task, apiUrl, token, onUpdated, onClose }: TaskE
             </div>
           </div>
 
-          {/* Deadline */}
           <div>
             <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>
               Дедлайн
@@ -187,16 +231,169 @@ export function TaskEditModal({ task, apiUrl, token, onUpdated, onClose }: TaskE
               type="datetime-local"
               value={deadline}
               onChange={(e) => setDeadline(e.target.value)}
-              style={{
-                width: '100%', padding: '7px 10px',
-                borderRadius: 10, border: '1px solid var(--border-strong)',
-                background: 'var(--bg-base)', color: 'var(--text-primary)',
-                fontSize: '0.8rem', outline: 'none',
-                transition: 'border-color 0.15s', fontFamily: 'inherit',
-              }}
+              style={{ ...inputStyle, fontSize: '0.8rem', padding: '7px 10px' }}
               onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--accent-1)'; }}
               onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--border-strong)'; }}
             />
+          </div>
+        </div>
+
+        {/* Tags */}
+        <div style={{ marginBottom: 14 }}>
+          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>
+            Теги
+          </label>
+          {tags.length > 0 && (
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 8 }}>
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                    padding: '2px 9px',
+                    borderRadius: 999, fontSize: '0.72rem', fontWeight: 600,
+                    background: `hsl(${hashTag(tag)}, 70%, 15%)`,
+                    color: `hsl(${hashTag(tag)}, 75%, 70%)`,
+                    border: `1px solid hsl(${hashTag(tag)}, 65%, 30%)`,
+                  }}
+                >
+                  #{tag}
+                  <button
+                    onClick={() => removeTag(tag)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'inherit', fontSize: '0.8rem', lineHeight: 1, opacity: 0.7 }}
+                    aria-label={`Remove tag ${tag}`}
+                  >×</button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
+            {TAG_PRESETS.filter((t) => !tags.includes(t)).slice(0, 5).map((preset) => (
+              <button
+                key={preset}
+                onClick={() => addTag(preset)}
+                style={{
+                  padding: '2px 9px', borderRadius: 999, fontSize: '0.68rem', fontWeight: 600,
+                  border: '1px dashed var(--border-strong)',
+                  background: 'transparent', color: 'var(--text-tertiary)',
+                  cursor: 'pointer', transition: 'all 0.12s',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-1)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-1)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border-strong)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-tertiary)'; }}
+              >
+                +{preset}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <input
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(tagInput); }
+                if (e.key === 'Escape') onClose();
+              }}
+              style={{ ...inputStyle, fontSize: '0.8rem', padding: '7px 10px' }}
+              onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--accent-1)'; }}
+              onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--border-strong)'; }}
+              placeholder="Новый тег… Enter для добавления"
+            />
+          </div>
+        </div>
+
+        {/* Subtasks */}
+        <div style={{ marginBottom: 22 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <label style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              Подзадачи {totalSub > 0 && <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>({doneSub}/{totalSub})</span>}
+            </label>
+            {totalSub > 0 && (
+              <div style={{ height: 2, flex: 1, maxWidth: 80, marginLeft: 10, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
+                <div style={{ height: '100%', borderRadius: 99, background: doneSub === totalSub ? '#10b981' : 'var(--accent-gradient)', width: `${Math.round((doneSub / totalSub) * 100)}%`, transition: 'width 0.3s' }} />
+              </div>
+            )}
+          </div>
+
+          {/* Existing subtasks */}
+          {subtasks.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
+              {subtasks.map((sub) => (
+                <div
+                  key={sub.id}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '6px 10px',
+                    borderRadius: 8,
+                    background: sub.done ? 'rgba(16,185,129,0.06)' : 'var(--bg-base)',
+                    border: `1px solid ${sub.done ? 'rgba(16,185,129,0.15)' : 'var(--border)'}`,
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <button
+                    onClick={() => toggleSubtask(sub.id)}
+                    style={{
+                      width: 18, height: 18, borderRadius: 4, flexShrink: 0,
+                      border: `2px solid ${sub.done ? '#10b981' : 'var(--border-strong)'}`,
+                      background: sub.done ? '#10b981' : 'transparent',
+                      cursor: 'pointer', padding: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      transition: 'all 0.15s',
+                    }}
+                    aria-label={sub.done ? 'Отметить как невыполненное' : 'Отметить как выполненное'}
+                  >
+                    {sub.done && (
+                      <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                        <polyline points="2,6 5,9 10,3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </button>
+                  <span style={{
+                    flex: 1, fontSize: '0.8rem',
+                    color: sub.done ? 'var(--text-tertiary)' : 'var(--text-primary)',
+                    textDecoration: sub.done ? 'line-through' : 'none',
+                  }}>
+                    {sub.title}
+                  </span>
+                  <button
+                    onClick={() => removeSubtask(sub.id)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: '0.8rem', padding: 2, lineHeight: 1, opacity: 0.6, transition: 'opacity 0.1s' }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; (e.currentTarget as HTMLButtonElement).style.color = '#ef4444'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = '0.6'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-tertiary)'; }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add subtask input */}
+          <div style={{ display: 'flex', gap: 6 }}>
+            <input
+              value={subtaskInput}
+              onChange={(e) => setSubtaskInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') { e.preventDefault(); addSubtask(); }
+                if (e.key === 'Escape') onClose();
+              }}
+              style={{ ...inputStyle, flex: 1, fontSize: '0.8rem', padding: '7px 10px' }}
+              onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--accent-1)'; }}
+              onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--border-strong)'; }}
+              placeholder="Добавить подзадачу… Enter"
+            />
+            <button
+              onClick={addSubtask}
+              disabled={!subtaskInput.trim()}
+              style={{
+                padding: '7px 14px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                background: subtaskInput.trim() ? 'rgba(99,102,241,0.12)' : 'var(--border)',
+                color: subtaskInput.trim() ? 'var(--accent-1)' : 'var(--text-tertiary)',
+                fontWeight: 600, fontSize: '0.8rem',
+                transition: 'all 0.15s',
+              }}
+            >
+              +
+            </button>
           </div>
         </div>
 
@@ -226,3 +423,4 @@ export function TaskEditModal({ task, apiUrl, token, onUpdated, onClose }: TaskE
     </>
   );
 }
+

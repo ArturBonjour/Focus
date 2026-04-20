@@ -18,16 +18,25 @@ const priorities: { value: Priority; label: string; color: string }[] = [
   { value: 'HIGH',   label: 'Высокий', color: '#ef4444' },
 ];
 
+const TAG_SUGGESTIONS = ['работа', 'личное', 'urgent', 'dev', 'meeting'];
+
+function hashTag(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0xffff;
+  return (h * 137) % 360;
+}
+
 // Inner form component — mounts fresh each time so state is clean
 function TaskForm({ apiUrl, token, onCreated, onClose }: TaskFormProps) {
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState<Priority>('MEDIUM');
   const [deadline, setDeadline] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Focus input on mount — this is side-effect of mounting, not setState
     const timer = setTimeout(() => inputRef.current?.focus(), 50);
     return () => clearTimeout(timer);
   }, []);
@@ -39,6 +48,12 @@ function TaskForm({ apiUrl, token, onCreated, onClose }: TaskFormProps) {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
+
+  function addTag(tag: string) {
+    const t = tag.trim().toLowerCase().replace(/\s+/g, '-').slice(0, 30);
+    if (t && !tags.includes(t)) setTags((prev) => [...prev, t]);
+    setTagInput('');
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,6 +80,7 @@ function TaskForm({ apiUrl, token, onCreated, onClose }: TaskFormProps) {
         body: JSON.stringify({
           title: title.trim(),
           priority,
+          tags,
           ...(deadline ? { deadline: new Date(deadline).toISOString() } : {}),
         }),
       });
@@ -132,6 +148,69 @@ function TaskForm({ apiUrl, token, onCreated, onClose }: TaskFormProps) {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Tags */}
+      <div style={{ marginBottom: 14 }}>
+        <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: 6, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          Теги
+        </p>
+        {tags.length > 0 && (
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 6 }}>
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 3,
+                  padding: '1px 8px', borderRadius: 999,
+                  fontSize: '0.68rem', fontWeight: 600,
+                  background: `hsl(${hashTag(tag)}, 70%, 15%)`,
+                  color: `hsl(${hashTag(tag)}, 75%, 70%)`,
+                  border: `1px solid hsl(${hashTag(tag)}, 65%, 30%)`,
+                }}
+              >
+                #{tag}
+                <button
+                  type="button"
+                  onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'inherit', fontSize: '0.75rem', lineHeight: 1, opacity: 0.7 }}
+                >×</button>
+              </span>
+            ))}
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 5 }}>
+          {TAG_SUGGESTIONS.filter((t) => !tags.includes(t)).slice(0, 4).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => addTag(s)}
+              style={{
+                padding: '2px 8px', borderRadius: 999, fontSize: '0.65rem', fontWeight: 600,
+                border: '1px dashed var(--border-strong)', background: 'transparent',
+                color: 'var(--text-tertiary)', cursor: 'pointer',
+              }}
+            >+{s}</button>
+          ))}
+        </div>
+        <input
+          type="text"
+          value={tagInput}
+          onChange={(e) => setTagInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') { e.preventDefault(); addTag(tagInput); }
+            if (e.key === ',') { e.preventDefault(); addTag(tagInput); }
+          }}
+          placeholder="Новый тег… Enter"
+          style={{
+            width: '100%', padding: '7px 10px', borderRadius: 8,
+            border: '1px solid var(--border-strong)',
+            background: 'var(--bg-base)', color: 'var(--text-primary)',
+            fontSize: '0.8rem', outline: 'none',
+          }}
+          onFocus={(e) => (e.target.style.borderColor = 'var(--accent-1)')}
+          onBlur={(e) => (e.target.style.borderColor = 'var(--border-strong)')}
+        />
       </div>
 
       <div style={{ marginBottom: 20 }}>
@@ -211,13 +290,15 @@ export function QuickAddTask({ apiUrl, token, onCreated }: QuickAddTaskProps) {
             top: '50%', left: '50%',
             transform: 'translate(-50%, -50%)',
             zIndex: 70,
-            width: '90%', maxWidth: 440,
+            width: '90%', maxWidth: 460,
             background: 'var(--bg-elevated)',
             border: '1px solid var(--border)',
             borderRadius: 20,
             boxShadow: 'var(--shadow-lg)',
             padding: '24px',
             animation: 'scale-in 0.2s var(--ease-spring) both',
+            maxHeight: 'calc(100dvh - 48px)',
+            overflowY: 'auto',
           }}
         >
           <TaskForm
@@ -232,3 +313,4 @@ export function QuickAddTask({ apiUrl, token, onCreated }: QuickAddTaskProps) {
     </>
   );
 }
+

@@ -9,16 +9,39 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateTaskDto = void 0;
+exports.CreateTaskDto = exports.SubtaskDto = void 0;
+exports.isSubtaskDto = isSubtaskDto;
 const swagger_1 = require("@nestjs/swagger");
 const client_1 = require("@prisma/client");
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
+class SubtaskDto {
+    id;
+    title;
+    done;
+}
+exports.SubtaskDto = SubtaskDto;
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SubtaskDto.prototype, "id", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(200),
+    __metadata("design:type", String)
+], SubtaskDto.prototype, "title", void 0);
+__decorate([
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], SubtaskDto.prototype, "done", void 0);
 class CreateTaskDto {
     title;
     description;
     priority;
     status;
     deadline;
+    tags;
+    subtasks;
 }
 exports.CreateTaskDto = CreateTaskDto;
 __decorate([
@@ -55,4 +78,28 @@ __decorate([
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
 ], CreateTaskDto.prototype, "deadline", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ type: [String], example: ['work', 'urgent'] }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_validator_1.MaxLength)(30, { each: true }),
+    __metadata("design:type", Array)
+], CreateTaskDto.prototype, "tags", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ type: [SubtaskDto] }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_transformer_1.Type)(() => SubtaskDto),
+    __metadata("design:type", Array)
+], CreateTaskDto.prototype, "subtasks", void 0);
+function isSubtaskDto(v) {
+    return (typeof v === 'object' &&
+        v !== null &&
+        !Array.isArray(v) &&
+        typeof v['id'] === 'string' &&
+        typeof v['title'] === 'string' &&
+        typeof v['done'] === 'boolean');
+}
 //# sourceMappingURL=create-task.dto.js.map

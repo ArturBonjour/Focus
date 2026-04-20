@@ -83,6 +83,8 @@ let TasksService = class TasksService {
                 status: dto.status,
                 deadline: dto.deadline ? new Date(dto.deadline) : undefined,
                 completedAt: dto.status === client_1.TaskStatus.DONE ? new Date() : undefined,
+                tags: dto.tags ?? [],
+                subtasks: dto.subtasks ?? [],
             },
         });
     }
@@ -104,6 +106,8 @@ let TasksService = class TasksService {
                     : dto.status && dto.status !== client_1.TaskStatus.DONE
                         ? null
                         : existing.completedAt,
+                tags: dto.tags !== undefined ? dto.tags : undefined,
+                subtasks: dto.subtasks !== undefined ? dto.subtasks : undefined,
             },
         });
     }
@@ -132,6 +136,8 @@ let TasksService = class TasksService {
                 priority: existing.priority,
                 status: 'TODO',
                 deadline: existing.deadline,
+                tags: existing.tags,
+                subtasks: [],
             },
         });
     }
@@ -153,6 +159,35 @@ let TasksService = class TasksService {
                 : null;
             return { ...t, daysLeft };
         });
+    }
+    async bulkUpdate(userId, dto) {
+        const tasks = await this.prisma.task.findMany({
+            where: { id: { in: dto.ids }, userId },
+            select: { id: true },
+        });
+        const ownedIds = tasks.map((t) => t.id);
+        if (dto.delete) {
+            await this.prisma.task.deleteMany({
+                where: { id: { in: ownedIds } },
+            });
+            return { affected: ownedIds.length, action: 'deleted' };
+        }
+        if (dto.status) {
+            const now = new Date();
+            await this.prisma.task.updateMany({
+                where: { id: { in: ownedIds } },
+                data: {
+                    status: dto.status,
+                    completedAt: dto.status === client_1.TaskStatus.DONE ? now : null,
+                },
+            });
+            return {
+                affected: ownedIds.length,
+                action: 'status_updated',
+                status: dto.status,
+            };
+        }
+        return { affected: 0, action: 'noop' };
     }
 };
 exports.TasksService = TasksService;

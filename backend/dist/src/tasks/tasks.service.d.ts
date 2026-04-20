@@ -18,6 +18,11 @@ export interface TaskFilter {
     priority?: TaskPriority;
     search?: string;
 }
+export interface BulkUpdateDto {
+    ids: string[];
+    status?: TaskStatus;
+    delete?: boolean;
+}
 export declare class TasksService {
     private readonly prisma;
     constructor(prisma: PrismaService);
@@ -31,6 +36,8 @@ export declare class TasksService {
         status: import("@prisma/client").$Enums.TaskStatus;
         deadline: Date | null;
         completedAt: Date | null;
+        tags: string[];
+        subtasks: import("@prisma/client/runtime/library").JsonValue;
         userId: string;
     }[]>;
     getStats(userId: string): Promise<TaskStats>;
@@ -44,6 +51,8 @@ export declare class TasksService {
         status: import("@prisma/client").$Enums.TaskStatus;
         deadline: Date | null;
         completedAt: Date | null;
+        tags: string[];
+        subtasks: import("@prisma/client/runtime/library").JsonValue;
         userId: string;
     }>;
     create(userId: string, dto: CreateTaskDto): import("@prisma/client").Prisma.Prisma__TaskClient<{
@@ -56,6 +65,8 @@ export declare class TasksService {
         status: import("@prisma/client").$Enums.TaskStatus;
         deadline: Date | null;
         completedAt: Date | null;
+        tags: string[];
+        subtasks: import("@prisma/client/runtime/library").JsonValue;
         userId: string;
     }, never, import("@prisma/client/runtime/library").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
     update(userId: string, taskId: string, dto: UpdateTaskDto): Promise<{
@@ -68,6 +79,8 @@ export declare class TasksService {
         status: import("@prisma/client").$Enums.TaskStatus;
         deadline: Date | null;
         completedAt: Date | null;
+        tags: string[];
+        subtasks: import("@prisma/client/runtime/library").JsonValue;
         userId: string;
     }>;
     remove(userId: string, taskId: string): Promise<{
@@ -83,6 +96,8 @@ export declare class TasksService {
         status: import("@prisma/client").$Enums.TaskStatus;
         deadline: Date | null;
         completedAt: Date | null;
+        tags: string[];
+        subtasks: import("@prisma/client/runtime/library").JsonValue;
         userId: string;
     }>;
     findUpcoming(userId: string, days?: number): Promise<{
@@ -96,6 +111,17 @@ export declare class TasksService {
         status: import("@prisma/client").$Enums.TaskStatus;
         deadline: Date | null;
         completedAt: Date | null;
+        tags: string[];
+        subtasks: import("@prisma/client/runtime/library").JsonValue;
         userId: string;
     }[]>;
+    bulkUpdate(userId: string, dto: BulkUpdateDto): Promise<{
+        affected: number;
+        action: string;
+        status?: undefined;
+    } | {
+        affected: number;
+        action: string;
+        status: import("@prisma/client").$Enums.TaskStatus;
+    }>;
 }

@@ -1,3 +1,9 @@
+export interface Subtask {
+  id: string;
+  title: string;
+  done: boolean;
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -6,6 +12,8 @@ export interface Task {
   status: 'TODO' | 'IN_PROGRESS' | 'DONE';
   deadline?: string | null;
   createdAt: string;
+  tags?: string[];
+  subtasks?: Subtask[];
 }
 
 export interface Habit {
@@ -84,6 +92,13 @@ const DEMO_DATA: DashboardData = {
       status: 'IN_PROGRESS',
       createdAt: new Date().toISOString(),
       deadline: new Date(Date.now() + 2 * 86_400_000).toISOString(),
+      tags: ['работа', 'отчёт'],
+      subtasks: [
+        { id: 's1', title: 'Собрать данные', done: true },
+        { id: 's2', title: 'Написать аналитику', done: true },
+        { id: 's3', title: 'Оформить презентацию', done: false },
+        { id: 's4', title: 'Проверить с командой', done: false },
+      ],
     },
     {
       id: 't2',
@@ -91,6 +106,8 @@ const DEMO_DATA: DashboardData = {
       priority: 'MEDIUM',
       status: 'DONE',
       createdAt: new Date().toISOString(),
+      tags: ['inbox'],
+      subtasks: [],
     },
     {
       id: 't3',
@@ -99,6 +116,11 @@ const DEMO_DATA: DashboardData = {
       status: 'TODO',
       createdAt: new Date().toISOString(),
       deadline: new Date(Date.now() + 86_400_000).toISOString(),
+      tags: ['встреча', 'спринт'],
+      subtasks: [
+        { id: 's5', title: 'Подготовить повестку', done: false },
+        { id: 's6', title: 'Отправить приглашение', done: false },
+      ],
     },
     {
       id: 't4',
@@ -106,6 +128,8 @@ const DEMO_DATA: DashboardData = {
       priority: 'LOW',
       status: 'TODO',
       createdAt: new Date().toISOString(),
+      tags: ['dev', 'документация'],
+      subtasks: [],
     },
     {
       id: 't5',
@@ -113,6 +137,11 @@ const DEMO_DATA: DashboardData = {
       priority: 'MEDIUM',
       status: 'IN_PROGRESS',
       createdAt: new Date().toISOString(),
+      tags: ['dev', 'review'],
+      subtasks: [
+        { id: 's7', title: 'Проверить логику', done: true },
+        { id: 's8', title: 'Оставить комментарии', done: false },
+      ],
     },
   ],
   habits: [

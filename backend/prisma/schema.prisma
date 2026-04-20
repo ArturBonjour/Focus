@@ -41,6 +41,8 @@ model Task {
   status      TaskStatus   @default(TODO)
   deadline    DateTime?
   completedAt DateTime?
+  tags        String[]     @default([])
+  subtasks    Json         @default("[]")
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 

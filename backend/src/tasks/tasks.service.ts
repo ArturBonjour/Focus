@@ -22,6 +22,12 @@ export interface TaskFilter {
   search?: string;
 }
 
+export interface BulkUpdateDto {
+  ids: string[];
+  status?: TaskStatus;
+  delete?: boolean;
+}
+
 @Injectable()
 export class TasksService {
   constructor(private readonly prisma: PrismaService) {}
@@ -100,6 +106,8 @@ export class TasksService {
         status: dto.status,
         deadline: dto.deadline ? new Date(dto.deadline) : undefined,
         completedAt: dto.status === TaskStatus.DONE ? new Date() : undefined,
+        tags: dto.tags ?? [],
+        subtasks: dto.subtasks ?? [],
       },
     });
   }
@@ -125,6 +133,8 @@ export class TasksService {
             : dto.status && dto.status !== TaskStatus.DONE
               ? null
               : existing.completedAt,
+        tags: dto.tags !== undefined ? dto.tags : undefined,
+        subtasks: dto.subtasks !== undefined ? dto.subtasks : undefined,
       },
     });
   }
@@ -157,6 +167,8 @@ export class TasksService {
         priority: existing.priority,
         status: 'TODO',
         deadline: existing.deadline,
+        tags: existing.tags,
+        subtasks: [],
       },
     });
   }
@@ -182,5 +194,39 @@ export class TasksService {
           : null;
       return { ...t, daysLeft };
     });
+  }
+
+  async bulkUpdate(userId: string, dto: BulkUpdateDto) {
+    // Verify all tasks belong to this user
+    const tasks = await this.prisma.task.findMany({
+      where: { id: { in: dto.ids }, userId },
+      select: { id: true },
+    });
+    const ownedIds = tasks.map((t) => t.id);
+
+    if (dto.delete) {
+      await this.prisma.task.deleteMany({
+        where: { id: { in: ownedIds } },
+      });
+      return { affected: ownedIds.length, action: 'deleted' };
+    }
+
+    if (dto.status) {
+      const now = new Date();
+      await this.prisma.task.updateMany({
+        where: { id: { in: ownedIds } },
+        data: {
+          status: dto.status,
+          completedAt: dto.status === TaskStatus.DONE ? now : null,
+        },
+      });
+      return {
+        affected: ownedIds.length,
+        action: 'status_updated',
+        status: dto.status,
+      };
+    }
+
+    return { affected: 0, action: 'noop' };
   }
 }
