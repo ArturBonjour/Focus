@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { ThemeToggle } from './theme-toggle';
 import { UserProfileWidget } from './user-profile-widget';
 
@@ -62,6 +63,16 @@ function IconAnalytics() {
   );
 }
 
+function IconFocus() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M3 12h2M19 12h2M12 3v2M12 19v2"/>
+      <path d="M5.64 5.64l1.41 1.41M16.95 16.95l1.41 1.41M5.64 18.36l1.41-1.41M16.95 7.05l1.41-1.41"/>
+    </svg>
+  );
+}
+
 function IconKanban() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -84,20 +95,21 @@ function IconSettings() {
 export function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const pathname = usePathname();
 
-  // detect current page to highlight the active nav item
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
   const isSettings = pathname === '/settings';
   const isKanban = pathname === '/kanban';
   const isAnalytics = pathname === '/analytics';
+  const isFocus = pathname === '/focus';
 
   const navItems: { icon: React.ReactNode; label: string; href: string; active?: boolean }[] = [
-    { icon: <IconChart />, label: 'Дашборд', href: '/', active: !isSettings && !isKanban && !isAnalytics },
+    { icon: <IconChart />, label: 'Дашборд', href: '/', active: !isSettings && !isKanban && !isAnalytics && !isFocus },
     { icon: <IconTasks />, label: 'Задачи', href: '/#tasks-section' },
     { icon: <IconHabits />, label: 'Привычки', href: '/#habits-section' },
     { icon: <IconKanban />, label: 'Kanban', href: '/kanban', active: isKanban },
     { icon: <IconAnalytics />, label: 'Аналитика', href: '/analytics', active: isAnalytics },
-    { icon: <IconTimer />, label: 'Focus Timer', href: '/#focus-timer' },
+    { icon: <IconFocus />, label: 'Focus Mode', href: '/focus', active: isFocus },
+    { icon: <IconTimer />, label: 'Pomodoro', href: '/#focus-timer' },
     { icon: <IconBrain />, label: 'AI Инсайты', href: '/#ai-section' },
     { icon: <IconSettings />, label: 'Настройки', href: '/settings', active: isSettings },
   ];
@@ -248,7 +260,7 @@ export function Sidebar() {
           </button>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>v6.0</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>v8.0</span>
             <ThemeToggle />
           </div>
         </div>

@@ -20,7 +20,7 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
     shortcuts: [
       { keys: ['⌘', 'K'], description: 'Открыть Command Palette' },
       { keys: ['?'], description: 'Показать все горячие клавиши' },
-      { keys: ['T'], description: 'Прокрутить вверх' },
+      { keys: ['T'], description: 'Прокрутить страницу вверх' },
     ],
   },
   {

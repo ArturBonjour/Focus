@@ -85,4 +85,17 @@ export declare class TasksService {
         completedAt: Date | null;
         userId: string;
     }>;
+    findUpcoming(userId: string, days?: number): Promise<{
+        daysLeft: number | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        title: string;
+        description: string | null;
+        priority: import("@prisma/client").$Enums.TaskPriority;
+        status: import("@prisma/client").$Enums.TaskStatus;
+        deadline: Date | null;
+        completedAt: Date | null;
+        userId: string;
+    }[]>;
 }

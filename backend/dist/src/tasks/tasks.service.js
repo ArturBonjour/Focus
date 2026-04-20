@@ -135,6 +135,25 @@ let TasksService = class TasksService {
             },
         });
     }
+    async findUpcoming(userId, days = 7) {
+        const now = new Date();
+        const future = new Date(now.getTime() + days * 86_400_000);
+        const tasks = await this.prisma.task.findMany({
+            where: {
+                userId,
+                status: { not: client_1.TaskStatus.DONE },
+                deadline: { lte: future },
+            },
+            orderBy: { deadline: 'asc' },
+        });
+        return tasks.map((t) => {
+            const deadlineMs = t.deadline ? t.deadline.getTime() : null;
+            const daysLeft = deadlineMs !== null
+                ? Math.ceil((deadlineMs - now.getTime()) / 86_400_000)
+                : null;
+            return { ...t, daysLeft };
+        });
+    }
 };
 exports.TasksService = TasksService;
 exports.TasksService = TasksService = __decorate([

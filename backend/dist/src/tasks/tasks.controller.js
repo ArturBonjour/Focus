@@ -33,6 +33,9 @@ let TasksController = class TasksController {
     getStats(user) {
         return this.tasksService.getStats(user.sub);
     }
+    findUpcoming(user, days) {
+        return this.tasksService.findUpcoming(user.sub, days ? parseInt(days, 10) : 7);
+    }
     async export(user, res, format) {
         const tasks = await this.tasksService.findAll(user.sub, {});
         const date = new Date().toISOString().slice(0, 10);
@@ -101,6 +104,18 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], TasksController.prototype, "getStats", null);
+__decorate([
+    (0, common_1.Get)('upcoming'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get tasks with deadline in the next N days (default 7)',
+    }),
+    (0, swagger_1.ApiQuery)({ name: 'days', type: Number, required: false }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Query)('days')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], TasksController.prototype, "findUpcoming", null);
 __decorate([
     (0, common_1.Get)('export'),
     (0, swagger_1.ApiOperation)({ summary: 'Export all tasks as JSON or CSV file' }),

@@ -18,6 +18,7 @@ import { AnalyticsSummaryCard } from '@/components/analytics-summary-card';
 import { GlobalKeyShortcuts } from '@/components/global-key-shortcuts';
 import { AchievementsCard } from '@/components/achievements-card';
 import { NotificationBell } from '@/components/notification-bell';
+import { UpcomingDeadlinesWidget } from '@/components/upcoming-deadlines-widget';
 import { getDashboardData } from '@/lib/api';
 
 export default async function Home() {
@@ -199,6 +200,9 @@ export default async function Home() {
           </div>
         </section>
 
+        {/* ── Upcoming Deadlines ── */}
+        <UpcomingDeadlinesWidget apiUrl={apiUrl} token={token} />
+
         {/* ── Tasks + Habits ── */}
         <section id="tasks-section" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
           {/* Tasks */}
@@ -308,7 +312,9 @@ export default async function Home() {
           NeuroTrack · AI Productivity System · v8.0
           <span style={{ marginLeft: 12 }}>
             <kbd style={{ fontFamily: 'monospace', fontSize: '0.62rem', background: 'var(--border)', borderRadius: 4, padding: '1px 5px', color: 'var(--text-tertiary)' }}>⌘K</kbd> поиск ·&nbsp;
-            <kbd style={{ fontFamily: 'monospace', fontSize: '0.62rem', background: 'var(--border)', borderRadius: 4, padding: '1px 5px', color: 'var(--text-tertiary)' }}>N</kbd> новая задача
+            <kbd style={{ fontFamily: 'monospace', fontSize: '0.62rem', background: 'var(--border)', borderRadius: 4, padding: '1px 5px', color: 'var(--text-tertiary)' }}>N</kbd> задача ·&nbsp;
+            <kbd style={{ fontFamily: 'monospace', fontSize: '0.62rem', background: 'var(--border)', borderRadius: 4, padding: '1px 5px', color: 'var(--text-tertiary)' }}>?</kbd> шорткаты ·&nbsp;
+            <kbd style={{ fontFamily: 'monospace', fontSize: '0.62rem', background: 'var(--border)', borderRadius: 4, padding: '1px 5px', color: 'var(--text-tertiary)' }}>T</kbd> вверх
           </span>
         </footer>
       </main>

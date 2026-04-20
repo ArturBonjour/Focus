@@ -48,6 +48,21 @@ export class TasksController {
     return this.tasksService.getStats(user.sub);
   }
 
+  @Get('upcoming')
+  @ApiOperation({
+    summary: 'Get tasks with deadline in the next N days (default 7)',
+  })
+  @ApiQuery({ name: 'days', type: Number, required: false })
+  findUpcoming(
+    @CurrentUser() user: JwtPayload,
+    @Query('days') days?: string,
+  ): Promise<unknown> {
+    return this.tasksService.findUpcoming(
+      user.sub,
+      days ? parseInt(days, 10) : 7,
+    );
+  }
+
   @Get('export')
   @ApiOperation({ summary: 'Export all tasks as JSON or CSV file' })
   @ApiQuery({ name: 'format', enum: ['json', 'csv'], required: false })

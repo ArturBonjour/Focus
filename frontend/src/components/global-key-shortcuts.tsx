@@ -39,6 +39,10 @@ export function GlobalKeyShortcuts() {
         e.preventDefault();
         setShortcutsOpen((prev) => !prev);
       }
+      if (e.key === 't' || e.key === 'T') {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);

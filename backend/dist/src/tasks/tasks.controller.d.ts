@@ -10,6 +10,7 @@ export declare class TasksController {
     constructor(tasksService: TasksService);
     findAll(user: JwtPayload, status?: TaskStatus, priority?: TaskPriority, search?: string): Promise<unknown>;
     getStats(user: JwtPayload): Promise<unknown>;
+    findUpcoming(user: JwtPayload, days?: string): Promise<unknown>;
     export(user: JwtPayload, res: Response, format?: 'json' | 'csv'): Promise<void>;
     create(user: JwtPayload, dto: CreateTaskDto): Promise<unknown>;
     findOne(user: JwtPayload, id: string): Promise<unknown>;
