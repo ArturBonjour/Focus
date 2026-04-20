@@ -21,6 +21,9 @@ const habits_module_1 = require("./habits/habits.module");
 const analytics_module_1 = require("./analytics/analytics.module");
 const telegram_module_1 = require("./telegram/telegram.module");
 const scheduler_module_1 = require("./scheduler/scheduler.module");
+const notes_module_1 = require("./notes/notes.module");
+const goals_module_1 = require("./goals/goals.module");
+const focus_sessions_module_1 = require("./focus-sessions/focus-sessions.module");
 const logger_middleware_1 = require("./common/middleware/logger.middleware");
 let AppModule = class AppModule {
     configure(consumer) {
@@ -41,6 +44,9 @@ exports.AppModule = AppModule = __decorate([
             analytics_module_1.AnalyticsModule,
             telegram_module_1.TelegramModule,
             scheduler_module_1.SchedulerModule,
+            notes_module_1.NotesModule,
+            goals_module_1.GoalsModule,
+            focus_sessions_module_1.FocusSessionsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

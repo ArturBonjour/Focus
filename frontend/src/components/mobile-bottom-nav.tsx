@@ -58,7 +58,8 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/kanban',    label: 'Kanban',    icon: <KanbanIcon /> },
   { href: '/analytics', label: 'Аналитика', icon: <AnalyticsIcon /> },
   { href: '/focus',     label: 'Фокус',     icon: <FocusIcon /> },
-  { href: '/settings',  label: 'Настройки', icon: <SettingsIcon /> },
+  { href: '/notes',     label: 'Заметки',   icon: <SettingsIcon /> },
+  { href: '/goals',     label: 'Цели',      icon: <SettingsIcon /> },
 ];
 
 export function MobileBottomNav() {

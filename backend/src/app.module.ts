@@ -12,6 +12,9 @@ import { HabitsModule } from './habits/habits.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { TelegramModule } from './telegram/telegram.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
+import { NotesModule } from './notes/notes.module';
+import { GoalsModule } from './goals/goals.module';
+import { FocusSessionsModule } from './focus-sessions/focus-sessions.module';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 
 @Module({
@@ -26,6 +29,9 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
     AnalyticsModule,
     TelegramModule,
     SchedulerModule,
+    NotesModule,
+    GoalsModule,
+    FocusSessionsModule,
   ],
   controllers: [AppController],
   providers: [
