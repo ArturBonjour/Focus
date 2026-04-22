@@ -104,10 +104,10 @@ function NewGoalModal({ onClose, onCreated, token }: NewGoalModalProps) {
     if (res?.ok) {
       const goal = (await res.json()) as Goal;
       onCreated(goal);
-      toast({ type: 'success', message: 'Цель создана! 🎯' });
+      toast.success('Цель создана! 🎯');
       onClose();
     } else {
-      toast({ type: 'error', message: 'Ошибка создания цели' });
+      toast.error('Ошибка создания цели');
     }
     setSaving(false);
   }
@@ -206,7 +206,7 @@ function EditProgressModal({ goal, onClose, onUpdated, token }: {
     if (res?.ok) {
       const updated = (await res.json()) as Goal;
       onUpdated(updated);
-      if (completed && !goal.completed) toast({ type: 'success', message: '🎉 Цель достигнута!' });
+      if (completed && !goal.completed) toast.success('🎉 Цель достигнута!');
       onClose();
     }
     setSaving(false);
@@ -304,7 +304,7 @@ export function GoalsClient({ token }: GoalsClientProps) {
     }).catch(() => null);
     if (res?.ok) {
       setGoals((prev) => prev.filter((g) => g.id !== id));
-      toast({ type: 'success', message: 'Цель удалена' });
+      toast.success('Цель удалена');
     }
   }
 

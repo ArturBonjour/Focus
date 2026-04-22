@@ -94,6 +94,13 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
       saveHistory(next);
       return next;
     });
+
+    // Persist to backend (fire-and-forget — UI should not fail if request fails)
+    fetch('/api/focus-sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phase: p, taskTitle, durationMin }),
+    }).catch(() => { /* silently ignore network errors */ });
   }, []);
 
   const stopInterval = useCallback(() => {

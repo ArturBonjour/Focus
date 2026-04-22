@@ -32,7 +32,6 @@ export class GoalsService {
 
   async update(userId: string, goalId: string, dto: UpdateGoalDto) {
     await this.ensureOwnership(userId, goalId);
-    const completedAt = dto.completed ? new Date() : undefined;
     return this.prisma.goal.update({
       where: { id: goalId },
       data: {
@@ -42,9 +41,14 @@ export class GoalsService {
         ...(dto.target !== undefined && { target: dto.target }),
         ...(dto.current !== undefined && { current: dto.current }),
         ...(dto.unit !== undefined && { unit: dto.unit }),
-        ...(dto.deadline !== undefined && { deadline: dto.deadline ? new Date(dto.deadline) : null }),
+        ...(dto.deadline !== undefined && {
+          deadline: dto.deadline ? new Date(dto.deadline) : null,
+        }),
         ...(dto.color !== undefined && { color: dto.color }),
-        ...(dto.completed !== undefined && { completed: dto.completed, ...(completedAt && { completedAt }) }),
+        ...(dto.completed !== undefined && {
+          completed: dto.completed,
+          completedAt: dto.completed ? new Date() : null,
+        }),
       },
     });
   }
@@ -55,8 +59,12 @@ export class GoalsService {
   }
 
   private async ensureOwnership(userId: string, goalId: string) {
-    const goal = await this.prisma.goal.findUnique({ where: { id: goalId }, select: { userId: true } });
-    if (!goal || goal.userId !== userId) throw new NotFoundException('Goal not found');
+    const goal = await this.prisma.goal.findUnique({
+      where: { id: goalId },
+      select: { userId: true },
+    });
+    if (!goal || goal.userId !== userId)
+      throw new NotFoundException('Goal not found');
     return goal;
   }
 }

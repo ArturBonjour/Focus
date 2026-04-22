@@ -147,7 +147,7 @@ export function NotesClient({ token }: NotesClientProps) {
     if (res?.ok) {
       setNotes((prev) => prev.filter((n) => n.id !== id));
       if (activeNote?.id === id) setActiveNote(null);
-      toast({ type: 'success', message: 'Заметка удалена' });
+      toast.success('Заметка удалена');
     }
   }
 

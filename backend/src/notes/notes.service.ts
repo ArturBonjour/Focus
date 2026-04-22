@@ -59,8 +59,12 @@ export class NotesService {
   }
 
   private async ensureOwnership(userId: string, noteId: string) {
-    const note = await this.prisma.note.findUnique({ where: { id: noteId }, select: { userId: true } });
-    if (!note || note.userId !== userId) throw new NotFoundException('Note not found');
+    const note = await this.prisma.note.findUnique({
+      where: { id: noteId },
+      select: { userId: true },
+    });
+    if (!note || note.userId !== userId)
+      throw new NotFoundException('Note not found');
     return note;
   }
 }

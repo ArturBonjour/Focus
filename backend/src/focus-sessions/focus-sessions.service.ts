@@ -39,7 +39,7 @@ export class FocusSessionsService {
     return {
       totalSessions,
       totalMinutes,
-      totalHours: Math.round(totalMinutes / 60 * 10) / 10,
+      totalHours: Math.round((totalMinutes / 60) * 10) / 10,
       todaySessions: todaySessions.length,
       todayMinutes: todaySessions.reduce((acc, s) => acc + s.durationMin, 0),
     };
