@@ -82,10 +82,14 @@ function KanbanCard({ task, isDragging, onDragStart, onStatusChange }: KanbanCar
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--shadow-lg)';
         (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
+        const handle = (e.currentTarget as HTMLDivElement).querySelector('.kanban-drag-handle') as HTMLDivElement | null;
+        if (handle) handle.style.opacity = '1';
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLDivElement).style.boxShadow = '';
         (e.currentTarget as HTMLDivElement).style.transform = '';
+        const handle = (e.currentTarget as HTMLDivElement).querySelector('.kanban-drag-handle') as HTMLDivElement | null;
+        if (handle) handle.style.opacity = '0';
       }}
     >
       {/* confetti burst */}
@@ -99,7 +103,23 @@ function KanbanCard({ task, isDragging, onDragStart, onStatusChange }: KanbanCar
       }} />
 
       <div style={{ paddingLeft: 10 }}>
-        {/* Title */}
+        {/* Drag handle */}
+        <div
+          className="kanban-drag-handle"
+          style={{
+            display: 'flex', justifyContent: 'center', marginBottom: 6,
+            opacity: 0, transition: 'opacity 0.15s',
+          }}
+        >
+          <svg width="16" height="8" viewBox="0 0 16 8" fill="none">
+            <circle cx="2" cy="2" r="1.5" fill="var(--text-tertiary)" />
+            <circle cx="8" cy="2" r="1.5" fill="var(--text-tertiary)" />
+            <circle cx="14" cy="2" r="1.5" fill="var(--text-tertiary)" />
+            <circle cx="2" cy="6" r="1.5" fill="var(--text-tertiary)" />
+            <circle cx="8" cy="6" r="1.5" fill="var(--text-tertiary)" />
+            <circle cx="14" cy="6" r="1.5" fill="var(--text-tertiary)" />
+          </svg>
+        </div>
         <p style={{
           fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)',
           lineHeight: 1.45, marginBottom: 6,

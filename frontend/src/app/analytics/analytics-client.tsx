@@ -202,7 +202,7 @@ export function AnalyticsClient({ overview, apiUrl, token }: { overview: Overvie
       {/* ── Row 2: 30-day chart + day-of-week chart ── */}
       <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0,3fr) minmax(0,2fr)', gap: 14 }}>
         {/* 30-day trend */}
-        <div className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '80ms' }}>
+        <div className="card glow-card animate-slide-up stagger-1" style={{ padding: '22px' }}>
           <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem', marginBottom: 2 }}>Тренд за 30 дней</h2>
           <p style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginBottom: 16 }}>Динамика создания и выполнения задач</p>
           <div style={{ height: 220 }}>
@@ -230,7 +230,7 @@ export function AnalyticsClient({ overview, apiUrl, token }: { overview: Overvie
         </div>
 
         {/* Day-of-week chart */}
-        <div className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '100ms' }}>
+        <div className="card glow-card animate-slide-up stagger-2" style={{ padding: '22px' }}>
           <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem', marginBottom: 2 }}>Лучшие дни недели</h2>
           <p style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginBottom: 16 }}>Выполненные задачи по дням</p>
           <div style={{ height: 220 }}>
@@ -257,14 +257,14 @@ export function AnalyticsClient({ overview, apiUrl, token }: { overview: Overvie
       {/* ── Row 3: Time-of-day + WoW comparison ── */}
       <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
         {/* Time-of-day distribution */}
-        <div className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '120ms' }}>
+        <div className="card glow-card animate-slide-up stagger-3" style={{ padding: '22px' }}>
           <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem', marginBottom: 2 }}>Активность по времени суток</h2>
           <p style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginBottom: 18 }}>Когда вы наиболее продуктивны</p>
           <ActivityBars buckets={activityBuckets} />
         </div>
 
         {/* Week-over-week comparison */}
-        <div className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '140ms' }}>
+        <div className="card glow-card animate-slide-up stagger-4" style={{ padding: '22px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem' }}>Сравнение по неделям</h2>
             <span className={`badge badge-${trends.trend === 'up' ? 'done' : trends.trend === 'down' ? 'high' : 'todo'}`} style={{ fontSize: '0.65rem' }}>
@@ -296,7 +296,7 @@ export function AnalyticsClient({ overview, apiUrl, token }: { overview: Overvie
       </section>
 
       {/* ── Row 4: Task health summary ── */}
-      <section className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '160ms' }}>
+      <section className="card glow-card animate-slide-up stagger-5" style={{ padding: '22px' }}>
         <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem', marginBottom: 2 }}>Состояние задач</h2>
         <p style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginBottom: 18 }}>Обзор вашего бэклога</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 12 }}>
@@ -326,7 +326,7 @@ export function AnalyticsClient({ overview, apiUrl, token }: { overview: Overvie
 
       {/* ── Row 6: Activity heatmap ── */}
       {(apiUrl && token) && (
-        <section className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '200ms', overflowX: 'auto' }}>
+        <section className="card glow-card animate-slide-up stagger-5" style={{ padding: '22px', overflowX: 'auto' }}>
           <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem', marginBottom: 2 }}>Активность за год</h2>
           <p style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginBottom: 18 }}>GitHub-style тепловая карта: задачи + привычки</p>
           <YearlyHeatmap apiUrl={apiUrl} token={token} />

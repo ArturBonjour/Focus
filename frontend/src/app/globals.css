@@ -607,3 +607,51 @@ body {
   transform: translateY(-2px) scale(1.02);
 }
 .btn-neon:active { transform: translateY(0) scale(1); }
+
+/* ─── Global button transition ───────────────────────────────────────── */
+button {
+  transition: all 0.2s ease;
+}
+
+/* ─── Page transition ────────────────────────────────────────────────── */
+@keyframes slide-up-fade {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-transition {
+  animation: slide-up-fade 0.4s ease both;
+}
+
+/* ─── Card hover ring ────────────────────────────────────────────────── */
+.card-hover-ring:hover {
+  box-shadow: 0 0 0 2px rgba(139,92,246,0.5), var(--shadow-elevated);
+}
+
+/* ─── Badge pulse ────────────────────────────────────────────────────── */
+@keyframes badge-pulse-kf {
+  0%, 100% { transform: scale(1);   opacity: 1; }
+  50%       { transform: scale(1.2); opacity: 0.8; }
+}
+.badge-pulse {
+  animation: badge-pulse-kf 1.4s ease-in-out infinite;
+}
+
+/* ─── Breathing keyframe (focus timer ring variant) ─────────────────── */
+@keyframes breathing {
+  0%, 100% { transform: scale(1);    }
+  50%       { transform: scale(1.05); }
+}
+.breathing-scale {
+  animation: breathing 4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* ─── Scale-in check (habit completion) ──────────────────────────────── */
+@keyframes scale-check {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.animate-scale-check {
+  animation: scale-check 0.35s var(--ease-spring) both;
+}

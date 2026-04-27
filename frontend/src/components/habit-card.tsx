@@ -236,7 +236,12 @@ export function HabitCard({ habit, apiUrl, token, onDelete }: HabitCardProps) {
             </p>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 3 }}>
-            <span style={{ fontSize: '0.85rem' }}>🔥</span>
+            <span
+              style={{ fontSize: '0.85rem' }}
+              className={streak >= 7 ? 'animate-pulse' : undefined}
+            >
+              🔥
+            </span>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: streak > 0 ? '#f59e0b' : 'var(--text-tertiary)' }}>
               {streak}
             </span>
@@ -288,7 +293,7 @@ export function HabitCard({ habit, apiUrl, token, onDelete }: HabitCardProps) {
             {loading ? (
               <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>•</span>
             ) : isToday ? (
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="animate-scale-check">
                 <path d="M2.5 7l3 3 6-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             ) : (
@@ -340,6 +345,29 @@ export function HabitCard({ habit, apiUrl, token, onDelete }: HabitCardProps) {
           );
         })}
       </div>
+
+      {/* Weekly progress bar */}
+      {(() => {
+        const pastDays = weekDays.filter((d) => d <= today);
+        const donePast = pastDays.filter((d) => completedDays.includes(d)).length;
+        const pct = pastDays.length > 0 ? Math.round((donePast / pastDays.length) * 100) : 0;
+        return (
+          <div style={{ marginTop: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>Неделя</span>
+              <span style={{ fontSize: '0.65rem', fontWeight: 700, color: pct === 100 ? '#10b981' : 'var(--text-tertiary)' }}>{donePast}/{pastDays.length}</span>
+            </div>
+            <div style={{ height: 4, background: 'var(--border)', borderRadius: 99, overflow: 'hidden' }}>
+              <div style={{
+                height: '100%', borderRadius: 99,
+                background: pct === 100 ? 'linear-gradient(90deg, #10b981, #059669)' : 'var(--accent-gradient)',
+                width: `${pct}%`,
+                transition: 'width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              }} />
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

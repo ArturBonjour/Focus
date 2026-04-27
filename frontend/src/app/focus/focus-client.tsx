@@ -278,7 +278,7 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
         display: 'flex', gap: 4,
         background: 'var(--border)',
         borderRadius: 12, padding: 4,
-        marginBottom: 40,
+        marginBottom: 16,
         position: 'relative', zIndex: 2,
       }}>
         {(['focus', 'short-break', 'long-break'] as Phase[]).map((p) => (
@@ -298,6 +298,33 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
             {PHASE_EMOJI[p]} {PHASE_LABEL[p]}
           </button>
         ))}
+      </div>
+
+      {/* Phase badge pill */}
+      <div style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        padding: '5px 14px', borderRadius: 999,
+        marginBottom: 24, zIndex: 2,
+        background: phase === 'focus'
+          ? 'rgba(99,102,241,0.15)'
+          : phase === 'short-break'
+            ? 'rgba(16,185,129,0.15)'
+            : 'rgba(245,158,11,0.15)',
+        border: `1.5px solid ${accentColor}44`,
+        fontSize: '0.8rem', fontWeight: 700,
+        color: accentColor,
+        transition: 'all 0.4s ease',
+      }}>
+        <span>{phase === 'focus' ? '🧠' : '☕'}</span>
+        <span>{phase === 'focus' ? 'Фокус-режим' : phase === 'short-break' ? 'Короткий перерыв' : 'Длинный перерыв'}</span>
+        {running && (
+          <span style={{
+            width: 6, height: 6, borderRadius: '50%',
+            background: accentColor,
+            animation: 'pulse-ring 1.5s ease-out infinite',
+            boxShadow: `0 0 0 0 ${accentColor}`,
+          }} />
+        )}
       </div>
 
       {/* Ring timer */}
@@ -468,17 +495,20 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
         </div>
       )}
 
-      {/* Session dots */}
+      {/* Session stars */}
       <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 36, zIndex: 2 }}>
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} style={{
-            width: i < sessionsDone ? 12 : 9,
-            height: i < sessionsDone ? 12 : 9,
-            borderRadius: '50%',
-            background: i < sessionsDone ? accentColor : 'var(--border)',
-            boxShadow: i < sessionsDone ? `0 0 8px ${accentColor}88` : 'none',
-            transition: 'all 0.3s var(--ease)',
-          }} />
+          <span
+            key={i}
+            style={{
+              fontSize: i < sessionsDone ? '1.1rem' : '0.9rem',
+              transition: 'all 0.3s var(--ease-spring)',
+              filter: i < sessionsDone ? `drop-shadow(0 0 6px ${accentColor}99)` : 'none',
+              opacity: i < sessionsDone ? 1 : 0.3,
+            }}
+          >
+            ⭐
+          </span>
         ))}
         <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginLeft: 8 }}>
           {sessionsDone}/4 сессий · {totalPomodoros} pomodoro всего
