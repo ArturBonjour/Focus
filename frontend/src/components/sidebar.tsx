@@ -221,6 +221,8 @@ export function Sidebar() {
                 color: item.active ? 'var(--accent-1)' : 'var(--text-secondary)',
                 transition: 'all 0.15s var(--ease)',
                 textDecoration: 'none',
+                borderLeft: item.active ? '3px solid var(--accent-1)' : '3px solid transparent',
+                boxShadow: item.active ? 'inset 0 0 0 1px rgba(99,102,241,0.08)' : 'none',
               }}
               onMouseEnter={(e) => {
                 if (!item.active) {

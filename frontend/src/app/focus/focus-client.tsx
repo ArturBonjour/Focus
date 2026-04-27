@@ -307,7 +307,8 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
         marginBottom: 32,
         zIndex: 2,
       }}>
-        <svg width="220" height="220" viewBox="0 0 200 200" style={{ transform: 'rotate(-90deg)' }}>
+        <svg width="220" height="220" viewBox="0 0 200 200" style={{ transform: 'rotate(-90deg)' }}
+          className={running && phase === 'focus' ? 'breathing-ring' : undefined}>
           {/* Track */}
           <circle cx="100" cy="100" r={r} fill="none" stroke="var(--border)" strokeWidth="10" />
           {/* Progress */}

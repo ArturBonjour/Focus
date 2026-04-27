@@ -42,11 +42,12 @@ function isOverdue(deadline: string | null | undefined, status: Column): boolean
 
 interface KanbanCardProps {
   task: Task;
+  isDragging?: boolean;
   onDragStart: (id: string) => void;
   onStatusChange: (id: string, status: Column) => void;
 }
 
-function KanbanCard({ task, onDragStart, onStatusChange }: KanbanCardProps) {
+function KanbanCard({ task, isDragging, onDragStart, onStatusChange }: KanbanCardProps) {
   const [loading, setLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const overdue = isOverdue(task.deadline, task.status as Column);
@@ -68,12 +69,15 @@ function KanbanCard({ task, onDragStart, onStatusChange }: KanbanCardProps) {
       style={{
         position: 'relative',
         background: 'var(--bg-card)',
-        border: '1px solid var(--border)',
+        border: `1px solid ${isDragging ? 'rgba(99,102,241,0.5)' : 'var(--border)'}`,
         borderRadius: 14,
         padding: '12px 14px',
-        cursor: 'grab',
-        transition: 'box-shadow 0.15s, transform 0.15s',
+        cursor: isDragging ? 'grabbing' : 'grab',
+        transition: 'box-shadow 0.15s, transform 0.15s, border-color 0.15s',
         userSelect: 'none',
+        transform: isDragging ? 'rotate(2deg) scale(1.03)' : undefined,
+        boxShadow: isDragging ? 'var(--shadow-neon)' : undefined,
+        opacity: isDragging ? 0.85 : 1,
       }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--shadow-lg)';
@@ -282,6 +286,7 @@ export function KanbanBoard({ initialTasks, apiUrl, token }: KanbanBoardProps) {
                 minHeight: 280,
                 transition: 'border-color 0.15s, background 0.15s',
                 backdropFilter: 'blur(12px)',
+                borderTop: `3px solid ${col.accent}`,
               }}
             >
               {/* Column header */}
@@ -336,6 +341,7 @@ export function KanbanBoard({ initialTasks, apiUrl, token }: KanbanBoardProps) {
                     <KanbanCard
                       key={task.id}
                       task={task}
+                      isDragging={dragId === task.id}
                       onDragStart={handleDragStart}
                       onStatusChange={handleStatusChange}
                     />

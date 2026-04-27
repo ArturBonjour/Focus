@@ -106,6 +106,7 @@ export function HabitCard({ habit, apiUrl, token, onDelete }: HabitCardProps) {
       } else {
         toast.info('Отметка снята', habit.name);
       }
+    } catch {
       // Revert optimistic update on error
       if (wasTracked) {
         setCompletedDays((prev) => [...prev, today]);

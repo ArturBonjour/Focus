@@ -141,10 +141,21 @@ let HabitsService = class HabitsService {
         if (days.length === 0) {
             return 0;
         }
+        const sorted = [...days].sort();
+        const lastDay = sorted[sorted.length - 1];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        const todayStr = today.toISOString().slice(0, 10);
+        const yesterdayStr = yesterday.toISOString().slice(0, 10);
+        if (lastDay !== todayStr && lastDay !== yesterdayStr) {
+            return 0;
+        }
         let streak = 1;
-        for (let index = days.length - 1; index > 0; index -= 1) {
-            const current = new Date(days[index]);
-            const previous = new Date(days[index - 1]);
+        for (let index = sorted.length - 1; index > 0; index -= 1) {
+            const current = new Date(sorted[index]);
+            const previous = new Date(sorted[index - 1]);
             const diff = (current.getTime() - previous.getTime()) / 86_400_000;
             if (diff === 1) {
                 streak += 1;
