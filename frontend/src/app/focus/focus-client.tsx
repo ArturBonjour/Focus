@@ -344,8 +344,14 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
           alignItems: 'center', justifyContent: 'center',
           gap: 4,
         }}>
+          <span
+            className={running ? 'animate-float' : undefined}
+            style={{ fontSize: '1.6rem', lineHeight: 1, marginBottom: 2, transition: 'opacity 0.4s' }}
+          >
+            {PHASE_EMOJI[phase]}
+          </span>
           <span style={{
-            fontSize: '3rem',
+            fontSize: '2.6rem',
             fontWeight: 900,
             fontVariantNumeric: 'tabular-nums',
             letterSpacing: '-0.03em',
@@ -362,6 +368,7 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
             fontWeight: 700,
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
+            transition: 'color 0.5s ease',
           }}>
             {PHASE_LABEL[phase]}
           </span>

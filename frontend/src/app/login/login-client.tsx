@@ -106,18 +106,18 @@ export function LoginClient() {
       }}>
         {/* Logo */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
-          <div style={{
-            width: 52, height: 52, borderRadius: 16,
+          <div className="animate-float animate-glow" style={{
+            width: 56, height: 56, borderRadius: 18,
             background: 'var(--accent-gradient)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginBottom: 14,
-            boxShadow: '0 8px 24px rgba(99,102,241,0.35)',
+            marginBottom: 16,
+            boxShadow: '0 8px 32px rgba(99,102,241,0.45)',
           }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
             </svg>
           </div>
-          <h1 style={{ fontWeight: 800, fontSize: '1.4rem', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>NeuroTrack</h1>
+          <h1 className="gradient-text" style={{ fontWeight: 800, fontSize: '1.5rem', letterSpacing: '-0.03em' }}>NeuroTrack</h1>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginTop: 4 }}>
             Интеллектуальная система планирования
           </p>
@@ -232,9 +232,9 @@ export function LoginClient() {
 
           <button
             type="submit"
-            className="btn btn-primary"
+            className="btn btn-primary btn-neon"
             disabled={loading}
-            style={{ width: '100%', justifyContent: 'center', padding: '12px', fontSize: '0.95rem', fontWeight: 700, marginTop: 4 }}
+            style={{ width: '100%', justifyContent: 'center', padding: '13px', fontSize: '0.98rem', fontWeight: 700, marginTop: 6 }}
           >
             {loading ? (
               <span className="animate-spin" style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block' }} />

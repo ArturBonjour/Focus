@@ -122,7 +122,7 @@ export function SettingsClient({ profile, apiUrl, token }: SettingsClientProps) 
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
       {/* Header */}
       <div className="animate-fade-in" style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: 4 }}>
+        <h1 className="gradient-text" style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: 4 }}>
           ⚙️ Настройки
         </h1>
         <p style={{ fontSize: '0.82rem', color: 'var(--text-tertiary)' }}>
@@ -131,7 +131,7 @@ export function SettingsClient({ profile, apiUrl, token }: SettingsClientProps) 
       </div>
 
       {/* Profile card */}
-      <section className="card animate-slide-up" style={{ padding: '24px', marginBottom: 16 }}>
+      <section className="glass-card glow-card animate-slide-up" style={{ padding: '24px', marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
           {/* Avatar */}
           <div style={{
@@ -206,7 +206,7 @@ export function SettingsClient({ profile, apiUrl, token }: SettingsClientProps) 
       </section>
 
       {/* Password change card */}
-      <section className="card animate-slide-up" style={{ padding: '24px', marginBottom: 16, animationDelay: '30ms' }}>
+      <section className="glass-card glow-card animate-slide-up" style={{ padding: '24px', marginBottom: 16, animationDelay: '30ms' }}>
         <h2 style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>
           🔒 Изменить пароль
         </h2>
@@ -304,7 +304,7 @@ export function SettingsClient({ profile, apiUrl, token }: SettingsClientProps) 
       </section>
 
       {/* Data export card */}
-      <section className="card animate-slide-up" style={{ padding: '24px', marginBottom: 16, animationDelay: '60ms' }}>
+      <section className="glass-card glow-card animate-slide-up" style={{ padding: '24px', marginBottom: 16, animationDelay: '60ms' }}>
         <h2 style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>
           📦 Экспорт данных
         </h2>
@@ -343,7 +343,7 @@ export function SettingsClient({ profile, apiUrl, token }: SettingsClientProps) 
       </section>
 
       {/* Keyboard shortcuts card */}
-      <section className="card animate-slide-up" style={{ padding: '24px', marginBottom: 16, animationDelay: '120ms' }}>
+      <section className="glass-card glow-card animate-slide-up" style={{ padding: '24px', marginBottom: 16, animationDelay: '120ms' }}>
         <h2 style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 14 }}>
           ⌨️ Горячие клавиши
         </h2>
@@ -378,7 +378,7 @@ export function SettingsClient({ profile, apiUrl, token }: SettingsClientProps) 
       </section>
 
       {/* About card */}
-      <section className="card animate-slide-up" style={{ padding: '24px', animationDelay: '180ms' }}>
+      <section className="glass-card glow-card animate-slide-up" style={{ padding: '24px', animationDelay: '180ms' }}>
         <h2 style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 14 }}>
           ℹ️ О системе
         </h2>

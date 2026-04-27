@@ -101,11 +101,10 @@ export default async function Home() {
         <header className="animate-fade-in" style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <h1 style={{
+              <h1 className="gradient-text" style={{
                 fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
-                fontWeight: 700,
-                color: 'var(--text-secondary)',
-                letterSpacing: '-0.01em',
+                fontWeight: 800,
+                letterSpacing: '-0.02em',
               }}>
                 NeuroTrack
               </h1>

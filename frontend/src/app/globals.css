@@ -575,3 +575,35 @@ body {
 .celebrate-pop {
   animation: celebrate-pop 0.4s var(--ease-spring) forwards;
 }
+
+/* ─── Float / glow animation helpers ──────────────────────────────── */
+.animate-float { animation: float 3s ease-in-out infinite; }
+.animate-glow  { animation: glow-pulse 2.5s ease-in-out infinite; }
+
+/* ─── Gradient text (animated) ─────────────────────────────────────── */
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% auto;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* ─── Input glow on focus ───────────────────────────────────────────── */
+.input-glow:focus {
+  border-color: var(--accent-1) !important;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15), 0 0 12px rgba(99,102,241,0.12);
+  outline: none;
+}
+
+/* ─── Neon button effect ─────────────────────────────────────────────── */
+.btn-neon {
+  box-shadow: 0 0 16px rgba(99,102,241,0.35);
+  transition: box-shadow 0.2s var(--ease), transform 0.15s var(--ease);
+}
+.btn-neon:hover {
+  box-shadow: var(--shadow-neon);
+  transform: translateY(-2px) scale(1.02);
+}
+.btn-neon:active { transform: translateY(0) scale(1); }
