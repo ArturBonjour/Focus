@@ -6,8 +6,20 @@ import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 
 export const metadata: Metadata = {
   title: { default: 'NeuroTrack', template: '%s | NeuroTrack' },
-  description: 'Интеллектуальная система планирования и анализа продуктивности',
+  description:
+    'Your AI-powered productivity hub — tasks, habits, focus timer, and insights in one beautiful app.',
   manifest: '/manifest.json',
+  authors: [{ name: 'NeuroTrack' }],
+  keywords: [
+    'productivity',
+    'habits',
+    'pomodoro',
+    'task management',
+    'focus timer',
+    'kanban',
+    'analytics',
+    'habit tracker',
+  ],
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
@@ -17,12 +29,19 @@ export const metadata: Metadata = {
     icon: '/favicon.ico',
     apple: '/icon-192.png',
   },
-  keywords: ['продуктивность', 'задачи', 'привычки', 'фокус', 'планирование'],
   openGraph: {
-    title: 'NeuroTrack — AI Productivity',
-    description: 'Интеллектуальная система планирования и анализа продуктивности',
+    title: 'NeuroTrack — AI Productivity Hub',
+    description:
+      'Your AI-powered productivity hub — tasks, habits, focus timer, and insights in one beautiful app.',
     type: 'website',
-    locale: 'ru_RU',
+    locale: 'en_US',
+    siteName: 'NeuroTrack',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'NeuroTrack — AI Productivity Hub',
+    description:
+      'Your AI-powered productivity hub — tasks, habits, focus timer, and insights in one beautiful app.',
   },
 };
 

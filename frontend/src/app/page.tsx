@@ -193,6 +193,55 @@ export default async function Home() {
           </div>
         )}
 
+        {/* ── Quick Actions ── */}
+        <div className="animate-fade-in" style={{
+          display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16,
+          animationDelay: '40ms',
+        }}>
+          <button
+            data-shortcut="new-task"
+            className="btn btn-primary"
+            style={{ fontSize: '0.8rem', padding: '7px 14px' }}
+            onClick={() => {
+              const btn = document.querySelector<HTMLButtonElement>('[data-qa="open-quick-add-task"]');
+              if (btn) btn.click();
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            New Task
+          </button>
+          <button
+            data-shortcut="new-habit"
+            className="btn btn-ghost"
+            style={{ fontSize: '0.8rem', padding: '7px 14px' }}
+            onClick={() => {
+              const btn = document.querySelector<HTMLButtonElement>('[data-qa="open-quick-add-habit"]');
+              if (btn) btn.click();
+            }}
+          >
+            <span aria-hidden="true">✨</span>
+            New Habit
+          </button>
+          <a
+            href="/focus"
+            className="btn btn-ghost"
+            style={{ fontSize: '0.8rem', padding: '7px 14px', textDecoration: 'none' }}
+          >
+            <span aria-hidden="true">⏱</span>
+            Start Focus
+          </a>
+          <a
+            href="/kanban"
+            className="btn btn-ghost"
+            style={{ fontSize: '0.8rem', padding: '7px 14px', textDecoration: 'none' }}
+          >
+            <span aria-hidden="true">📋</span>
+            Kanban
+          </a>
+        </div>
+
         {/* ── KPI Cards ── */}
         <section className="stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, marginBottom: 20 }}>
           <StatCard

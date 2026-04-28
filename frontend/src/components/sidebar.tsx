@@ -287,7 +287,40 @@ export function Sidebar() {
           </button>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>v8.0</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>v8.0</span>
+              {/* Keyboard shortcuts hint button */}
+              <button
+                onClick={() => {
+                  document.dispatchEvent(
+                    new KeyboardEvent('keydown', { key: '?', bubbles: true }),
+                  );
+                }}
+                aria-label="Show keyboard shortcuts"
+                title="Keyboard shortcuts (?)"
+                style={{
+                  width: 22, height: 22, borderRadius: 6,
+                  border: '1.5px solid var(--border-strong)',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  fontSize: '0.65rem', fontWeight: 700,
+                  color: 'var(--text-tertiary)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.15s var(--ease)',
+                  fontFamily: 'monospace',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-1)';
+                  (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-1)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border-strong)';
+                  (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-tertiary)';
+                }}
+              >
+                ?
+              </button>
+            </div>
             <ThemeToggle />
           </div>
         </div>
