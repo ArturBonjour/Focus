@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ThemeToggle } from './theme-toggle';
 import { UserProfileWidget } from './user-profile-widget';
@@ -202,53 +203,73 @@ export function Sidebar() {
 
         {/* Nav */}
         <div style={{ padding: '12px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {navItems.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '9px 12px',
-                borderRadius: 10,
-                border: 'none',
-                width: '100%',
-                textAlign: 'left',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: item.active ? 600 : 400,
-                background: item.active ? 'rgba(99,102,241,0.10)' : 'transparent',
-                color: item.active ? 'var(--accent-1)' : 'var(--text-secondary)',
-                transition: 'all 0.15s var(--ease)',
-                textDecoration: 'none',
-                borderLeft: item.active ? '3px solid var(--accent-1)' : '3px solid transparent',
-                boxShadow: item.active ? 'inset 0 0 0 1px rgba(99,102,241,0.08)' : 'none',
-              }}
-              onMouseEnter={(e) => {
-                if (!item.active) {
-                  (e.currentTarget as HTMLAnchorElement).style.background = 'var(--border)';
-                  (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-primary)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!item.active) {
-                  (e.currentTarget as HTMLAnchorElement).style.background = 'transparent';
-                  (e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-secondary)';
-                }
-              }}
-            >
-              <span style={{ opacity: item.active ? 1 : 0.7 }}>{item.icon}</span>
-              {item.label}
-              {item.active && (
-                <span style={{
-                  marginLeft: 'auto',
-                  width: 6, height: 6,
-                  borderRadius: '50%',
-                  background: 'var(--accent-1)',
-                }} />
-              )}
-            </a>
-          ))}
+          {navItems.map((item) => {
+            const isAnchor = item.href.includes('#');
+            const navStyle: React.CSSProperties = {
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '9px 12px',
+              borderRadius: 10,
+              width: '100%',
+              fontSize: '0.875rem',
+              fontWeight: item.active ? 600 : 400,
+              background: item.active ? 'rgba(99,102,241,0.10)' : 'transparent',
+              color: item.active ? 'var(--accent-1)' : 'var(--text-secondary)',
+              transition: 'all 0.15s var(--ease)',
+              textDecoration: 'none',
+              borderLeft: item.active ? '3px solid var(--accent-1)' : '3px solid transparent',
+              boxShadow: item.active ? 'inset 0 0 0 1px rgba(99,102,241,0.08)' : 'none',
+              cursor: 'pointer',
+            };
+            const content = (
+              <>
+                <span style={{ opacity: item.active ? 1 : 0.7 }}>{item.icon}</span>
+                {item.label}
+                {item.active && (
+                  <span style={{
+                    marginLeft: 'auto',
+                    width: 6, height: 6,
+                    borderRadius: '50%',
+                    background: 'var(--accent-1)',
+                  }} />
+                )}
+              </>
+            );
+            const hoverEnter = (e: React.MouseEvent<HTMLElement>) => {
+              if (!item.active) {
+                (e.currentTarget as HTMLElement).style.background = 'var(--border)';
+                (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)';
+              }
+            };
+            const hoverLeave = (e: React.MouseEvent<HTMLElement>) => {
+              if (!item.active) {
+                (e.currentTarget as HTMLElement).style.background = 'transparent';
+                (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)';
+              }
+            };
+            return isAnchor ? (
+              <a
+                key={item.label}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                style={navStyle}
+                onMouseEnter={hoverEnter}
+                onMouseLeave={hoverLeave}
+              >
+                {content}
+              </a>
+            ) : (
+              <Link
+                key={item.label}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                style={navStyle}
+                onMouseEnter={hoverEnter}
+                onMouseLeave={hoverLeave}
+              >
+                {content}
+              </Link>
+            );
+          })}
         </div>
 
         {/* Bottom */}

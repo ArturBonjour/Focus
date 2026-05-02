@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from '@/components/toast';
 import { NotificationPermissionButton } from '@/components/deadline-notifier';
 
@@ -28,6 +28,40 @@ export function SettingsClient({ profile, apiUrl, token }: SettingsClientProps) 
   const [showCurrentPwd, setShowCurrentPwd] = useState(false);
   const [showNewPwd, setShowNewPwd] = useState(false);
   const [savingPwd, setSavingPwd] = useState(false);
+
+  // Appearance state
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [focusDuration, setFocusDuration] = useState(25);
+  const [shortBreak, setShortBreak] = useState(5);
+  const [longBreak, setLongBreak] = useState(15);
+
+  useEffect(() => {
+    // Read saved theme
+    const saved = localStorage.getItem('nt-theme');
+    const attr = document.documentElement.getAttribute('data-theme');
+    setTheme((saved ?? attr ?? 'light') as 'light' | 'dark');
+
+    // Read saved focus durations
+    const fd = parseInt(localStorage.getItem('nt-focus-duration') ?? '25', 10);
+    const sb = parseInt(localStorage.getItem('nt-short-break') ?? '5', 10);
+    const lb = parseInt(localStorage.getItem('nt-long-break') ?? '15', 10);
+    if (!isNaN(fd)) setFocusDuration(fd);
+    if (!isNaN(sb)) setShortBreak(sb);
+    if (!isNaN(lb)) setLongBreak(lb);
+  }, []);
+
+  function handleThemeChange(next: 'light' | 'dark') {
+    setTheme(next);
+    localStorage.setItem('nt-theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+  }
+
+  function handleSaveFocusPrefs() {
+    localStorage.setItem('nt-focus-duration', String(focusDuration));
+    localStorage.setItem('nt-short-break', String(shortBreak));
+    localStorage.setItem('nt-long-break', String(longBreak));
+    toast.success('Настройки таймера сохранены', 'Вступят в силу при следующем запуске таймера');
+  }
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '11px 14px',
@@ -303,6 +337,108 @@ export function SettingsClient({ profile, apiUrl, token }: SettingsClientProps) 
         </form>
       </section>
 
+      {/* Appearance card */}
+      <section className="glass-card glow-card animate-slide-up" style={{ padding: '24px', marginBottom: 16, animationDelay: '45ms' }}>
+        <h2 style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>
+          🎨 Внешний вид
+        </h2>
+        <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginBottom: 18, lineHeight: 1.5 }}>
+          Тема интерфейса и настройки отображения.
+        </p>
+
+        {/* Theme selector */}
+        <div style={{ marginBottom: 20 }}>
+          <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 10 }}>
+            Тема
+          </label>
+          <div style={{ display: 'flex', gap: 10 }}>
+            {(['light', 'dark'] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => handleThemeChange(t)}
+                style={{
+                  flex: 1, padding: '14px 12px', borderRadius: 12,
+                  border: `2px solid ${theme === t ? 'var(--accent-1)' : 'var(--border-strong)'}`,
+                  background: theme === t ? 'rgba(99,102,241,0.08)' : 'var(--bg-base)',
+                  cursor: 'pointer',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                  transition: 'all 0.15s var(--ease)',
+                }}
+              >
+                <div style={{
+                  width: 44, height: 28, borderRadius: 7,
+                  background: t === 'dark' ? '#0a0a0f' : '#f4f4f8',
+                  border: '1px solid var(--border-strong)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '0.9rem',
+                }}>
+                  {t === 'dark' ? '🌙' : '☀️'}
+                </div>
+                <span style={{ fontSize: '0.78rem', fontWeight: theme === t ? 700 : 500, color: theme === t ? 'var(--accent-1)' : 'var(--text-secondary)' }}>
+                  {t === 'light' ? 'Светлая' : 'Тёмная'}
+                </span>
+                {theme === t && (
+                  <span style={{ fontSize: '0.65rem', color: 'var(--accent-1)', fontWeight: 700 }}>✓ Активна</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Focus timer durations */}
+        <div>
+          <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 10 }}>
+            ⏱ Настройки Pomodoro (минуты)
+          </label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 14 }}>
+            {([
+              { label: '🎯 Фокус', value: focusDuration, setter: setFocusDuration, min: 5, max: 90 },
+              { label: '☕ Кор. перерыв', value: shortBreak, setter: setShortBreak, min: 1, max: 30 },
+              { label: '🌴 Дл. перерыв', value: longBreak, setter: setLongBreak, min: 5, max: 60 },
+            ] as { label: string; value: number; setter: (v: number) => void; min: number; max: number }[]).map(({ label, value, setter, min, max }) => (
+              <div key={label}>
+                <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-tertiary)', marginBottom: 5 }}>{label}</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <button
+                    type="button"
+                    onClick={() => setter(Math.max(min, value - 1))}
+                    style={{ width: 28, height: 28, borderRadius: 7, border: '1px solid var(--border-strong)', background: 'var(--bg-base)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                  >−</button>
+                  <input
+                    type="number"
+                    value={value}
+                    min={min}
+                    max={max}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value, 10);
+                      if (!isNaN(v) && v >= min && v <= max) setter(v);
+                    }}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 7, border: '1.5px solid var(--border-strong)', background: 'var(--bg-base)', color: 'var(--text-primary)', fontSize: '0.88rem', fontWeight: 700, textAlign: 'center', outline: 'none', fontFamily: 'inherit' }}
+                    onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--accent-1)'; }}
+                    onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--border-strong)'; }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setter(Math.min(max, value + 1))}
+                    style={{ width: 28, height: 28, borderRadius: 7, border: '1px solid var(--border-strong)', background: 'var(--bg-base)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                  >+</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSaveFocusPrefs}
+              style={{ padding: '9px 22px', fontSize: '0.85rem' }}
+            >
+              💾 Сохранить настройки
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Data export card */}
       <section className="glass-card glow-card animate-slide-up" style={{ padding: '24px', marginBottom: 16, animationDelay: '60ms' }}>
         <h2 style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: 6 }}>
@@ -384,7 +520,7 @@ export function SettingsClient({ profile, apiUrl, token }: SettingsClientProps) 
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           {[
-            { label: 'Версия', value: 'v7.0' },
+            { label: 'Версия', value: 'v8.0' },
             { label: 'Frontend', value: 'Next.js 16 · React 19' },
             { label: 'Backend', value: 'NestJS 11 · Prisma 6' },
             { label: 'База данных', value: 'PostgreSQL 16' },

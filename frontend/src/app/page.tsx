@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import Link from 'next/link';
 import { Sidebar } from '@/components/sidebar';
 import { StatCard } from '@/components/stat-card';
 import { ProductivityChart } from '@/components/productivity-chart';
@@ -224,22 +225,22 @@ export default async function Home() {
             <span aria-hidden="true">✨</span>
             New Habit
           </button>
-          <a
+          <Link
             href="/focus"
             className="btn btn-ghost"
             style={{ fontSize: '0.8rem', padding: '7px 14px', textDecoration: 'none' }}
           >
             <span aria-hidden="true">⏱</span>
             Start Focus
-          </a>
-          <a
+          </Link>
+          <Link
             href="/kanban"
             className="btn btn-ghost"
             style={{ fontSize: '0.8rem', padding: '7px 14px', textDecoration: 'none' }}
           >
             <span aria-hidden="true">📋</span>
             Kanban
-          </a>
+          </Link>
         </div>
 
         {/* ── KPI Cards ── */}
@@ -261,7 +262,7 @@ export default async function Home() {
         </section>
 
         {/* ── Chart + Focus Timer ── */}
-        <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 14, marginBottom: 14 }}>
+        <section className="dashboard-grid-2col">
           <div className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '80ms' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
               <div>
@@ -291,7 +292,7 @@ export default async function Home() {
         </section>
 
         {/* ── Donut Charts ── */}
-        <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+        <section className="dashboard-grid-equal">
           <div className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '100ms' }}>
             <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem', marginBottom: 2 }}>По статусу</h2>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: 8 }}>Распределение задач</p>
@@ -308,7 +309,7 @@ export default async function Home() {
         <UpcomingDeadlinesWidget apiUrl={apiUrl} token={token} />
 
         {/* ── Tasks + Habits ── */}
-        <section id="tasks-section" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+        <section id="tasks-section" className="dashboard-grid-equal">
           {/* Tasks */}
           <div className="card glow-card animate-slide-up" style={{ padding: '22px', animationDelay: '160ms' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>

@@ -655,3 +655,28 @@ button {
 .animate-scale-check {
   animation: scale-check 0.35s var(--ease-spring) both;
 }
+
+/* ─── Responsive dashboard grids ─────────────────────────────────────── */
+.dashboard-grid-2col {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.dashboard-grid-equal {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+@media (max-width: 900px) {
+  .dashboard-grid-2col,
+  .dashboard-grid-equal {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .main-content {
+    padding: 16px 12px 80px;
+  }
+}
