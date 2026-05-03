@@ -40,7 +40,7 @@ export default async function KanbanPage() {
               📋
             </div>
             <div>
-              <h1 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+              <h1 className="gradient-text" style={{ fontSize: '1.3rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
                 Kanban Board
               </h1>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 1 }}>

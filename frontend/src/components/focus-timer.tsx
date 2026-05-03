@@ -93,6 +93,21 @@ export function FocusTimer() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, phase, stopInterval, switchPhase]);
 
+  const mm = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+  const ss = String(timeLeft % 60).padStart(2, '0');
+
+  // Update document title with timer countdown
+  useEffect(() => {
+    if (running) {
+      document.title = `${mm}:${ss} ${PHASE_LABEL[phase]} | NeuroTrack`;
+    } else {
+      document.title = 'NeuroTrack';
+    }
+    return () => {
+      document.title = 'NeuroTrack';
+    };
+  }, [mm, ss, running, phase]);
+
   // Space key toggles play/pause
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -104,9 +119,6 @@ export function FocusTimer() {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, []);
-
-  const mm = String(Math.floor(timeLeft / 60)).padStart(2, '0');
-  const ss = String(timeLeft % 60).padStart(2, '0');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, width: '100%' }}>

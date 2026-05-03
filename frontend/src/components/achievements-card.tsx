@@ -49,7 +49,7 @@ export function AchievementsCard() {
 
   return (
     <div
-      className="card animate-slide-up"
+      className="card glow-card animate-slide-up"
       style={{ padding: '20px 22px', animationDelay: '300ms' }}
     >
       {/* Header */}

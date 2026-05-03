@@ -124,16 +124,16 @@ export function AnalyticsSummaryCard({ apiUrl, token }: AnalyticsSummaryCardProp
 
   const metrics: MetricProps[] = d ? [
     {
-      label: 'Completion Rate',
+      label: 'Процент выполнения',
       value: `${d.tasks.completionRate}%`,
       sub: `${d.tasks.done} из ${d.tasks.total} задач`,
       icon: '🎯',
       color: '#10b981',
     },
     {
-      label: 'Avg. время выполнения',
+      label: 'Среднее время выполнения',
       value: d.tasks.avgCompletionDays !== null ? `${d.tasks.avgCompletionDays}д` : '—',
-      sub: 'от создания до DONE',
+      sub: 'от создания до завершения',
       icon: '⏱',
       color: '#6366f1',
     },

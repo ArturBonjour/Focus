@@ -25,7 +25,7 @@ export function StatCard({
 
   return (
     <div
-      className="card animate-slide-up"
+      className="card glow-card animate-slide-up"
       style={{
         padding: '18px 20px',
         animationDelay: `${delay}ms`,

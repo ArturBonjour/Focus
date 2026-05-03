@@ -211,7 +211,7 @@ export default async function Home() {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
-            New Task
+            Новая задача
           </button>
           <button
             data-shortcut="new-habit"
@@ -223,7 +223,7 @@ export default async function Home() {
             }}
           >
             <span aria-hidden="true">✨</span>
-            New Habit
+            Новая привычка
           </button>
           <Link
             href="/focus"
@@ -231,7 +231,7 @@ export default async function Home() {
             style={{ fontSize: '0.8rem', padding: '7px 14px', textDecoration: 'none' }}
           >
             <span aria-hidden="true">⏱</span>
-            Start Focus
+            Режим фокуса
           </Link>
           <Link
             href="/kanban"
@@ -239,7 +239,7 @@ export default async function Home() {
             style={{ fontSize: '0.8rem', padding: '7px 14px', textDecoration: 'none' }}
           >
             <span aria-hidden="true">📋</span>
-            Kanban
+            Канбан
           </Link>
         </div>
 
