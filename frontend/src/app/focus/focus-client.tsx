@@ -30,11 +30,45 @@ function saveHistory(records: SessionRecord[]) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(records.slice(0, MAX_HISTORY))); } catch { /* ignore */ }
 }
 
-const PHASE_SECS: Record<Phase, number> = {
+const DEFAULT_PHASE_SECS: Record<Phase, number> = {
   focus: 25 * 60,
   'short-break': 5 * 60,
   'long-break': 15 * 60,
 };
+
+function loadPhaseSecs(): Record<Phase, number> {
+  if (typeof window === 'undefined') return { ...DEFAULT_PHASE_SECS };
+  const focus = parseInt(localStorage.getItem('nt-focus-duration') ?? '25', 10);
+  const short = parseInt(localStorage.getItem('nt-short-break') ?? '5', 10);
+  const long  = parseInt(localStorage.getItem('nt-long-break') ?? '15', 10);
+  return {
+    focus:       (isNaN(focus) ? 25 : focus) * 60,
+    'short-break': (isNaN(short) ? 5 : short) * 60,
+    'long-break':  (isNaN(long) ? 15 : long) * 60,
+  };
+}
+
+function playDoneSound() {
+  try {
+    const ctx = new AudioContext();
+    const notes = [880, 1100, 880];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const start = ctx.currentTime + i * 0.22;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.4, start + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.4);
+      osc.start(start);
+      osc.stop(start + 0.4);
+    });
+  } catch { /* ignore if audio not available */ }
+}
+
 const PHASE_LABEL: Record<Phase, string> = {
   focus: 'Фокус',
   'short-break': 'Короткий перерыв',
@@ -59,8 +93,9 @@ interface FocusModeClientProps {
 
 export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) {
   const router = useRouter();
+  const [phaseSecs, setPhaseSecs] = useState<Record<Phase, number>>(DEFAULT_PHASE_SECS);
   const [phase, setPhase] = useState<Phase>('focus');
-  const [timeLeft, setTimeLeft] = useState(PHASE_SECS.focus);
+  const [timeLeft, setTimeLeft] = useState(DEFAULT_PHASE_SECS.focus);
   const [running, setRunning] = useState(false);
   const [sessionsDone, setSessionsDone] = useState(0);
   const [totalPomodoros, setTotalPomodoros] = useState(0);

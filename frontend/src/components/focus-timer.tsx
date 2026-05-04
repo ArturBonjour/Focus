@@ -5,11 +5,44 @@ import { toast } from './toast';
 
 type Phase = 'focus' | 'short-break' | 'long-break';
 
-const PHASE_SECS: Record<Phase, number> = {
+const DEFAULT_SECS: Record<Phase, number> = {
   'focus':       25 * 60,
   'short-break':  5 * 60,
   'long-break':  15 * 60,
 };
+
+function loadPhaseSecs(): Record<Phase, number> {
+  if (typeof window === 'undefined') return { ...DEFAULT_SECS };
+  const focus = parseInt(localStorage.getItem('nt-focus-duration') ?? '25', 10);
+  const short = parseInt(localStorage.getItem('nt-short-break') ?? '5', 10);
+  const long  = parseInt(localStorage.getItem('nt-long-break') ?? '15', 10);
+  return {
+    'focus':       (isNaN(focus) ? 25 : focus) * 60,
+    'short-break': (isNaN(short) ? 5 : short) * 60,
+    'long-break':  (isNaN(long) ? 15 : long) * 60,
+  };
+}
+
+function playDoneSound() {
+  try {
+    const ctx = new AudioContext();
+    const notes = [880, 1100, 880];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const start = ctx.currentTime + i * 0.22;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.4, start + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.4);
+      osc.start(start);
+      osc.stop(start + 0.4);
+    });
+  } catch { /* ignore if audio not available */ }
+}
 
 const PHASE_LABEL: Record<Phase, string> = {
   'focus':       '🎯 Фокус',
@@ -24,16 +57,24 @@ const PHASE_COLOR: Record<Phase, string> = {
 };
 
 export function FocusTimer() {
+  const [phaseSecs, setPhaseSecs] = useState<Record<Phase, number>>(DEFAULT_SECS);
   const [phase, setPhase] = useState<Phase>('focus');
-  const [timeLeft, setTimeLeft] = useState(PHASE_SECS['focus']);
+  const [timeLeft, setTimeLeft] = useState(DEFAULT_SECS['focus']);
   const [running, setRunning] = useState(false);
   // sessions = completed focus sessions in current cycle (resets after long break)
   const [sessionsDone, setSessionsDone] = useState(0);
   const [totalPomodoros, setTotalPomodoros] = useState(0);
 
+  // Load saved timer settings from localStorage on mount
+  useEffect(() => {
+    const saved = loadPhaseSecs();
+    setPhaseSecs(saved);
+    setTimeLeft(saved['focus']);
+  }, []);
+
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const total = PHASE_SECS[phase];
-  const progress = (total - timeLeft) / total;
+  const total = phaseSecs[phase];
+  const progress = total > 0 ? (total - timeLeft) / total : 0;
   const circumference = 2 * Math.PI * 52;
   const dashOffset = circumference * (1 - progress);
   const accentColor = PHASE_COLOR[phase];
@@ -42,18 +83,18 @@ export function FocusTimer() {
     if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
   }, []);
 
-  const switchPhase = useCallback((next: Phase) => {
+  const switchPhase = useCallback((next: Phase, secs?: Record<Phase, number>) => {
     stopInterval();
     setRunning(false);
     setPhase(next);
-    setTimeLeft(PHASE_SECS[next]);
+    setTimeLeft((secs ?? loadPhaseSecs())[next]);
   }, [stopInterval]);
 
   const handleReset = useCallback(() => {
     stopInterval();
     setRunning(false);
-    setTimeLeft(PHASE_SECS[phase]);
-  }, [phase, stopInterval]);
+    setTimeLeft(phaseSecs[phase]);
+  }, [phase, stopInterval, phaseSecs]);
 
   // Auto-advance phase on timer completion
   useEffect(() => {
@@ -63,7 +104,10 @@ export function FocusTimer() {
       setTimeLeft((t) => {
         if (t > 1) return t - 1;
 
-        // Timer reached 0
+        // Timer reached 0 — play a sound
+        playDoneSound();
+
+        // Auto-advance phase
         if (phase === 'focus') {
           const newDone = sessionsDone + 1;
           setSessionsDone(newDone);
@@ -72,24 +116,24 @@ export function FocusTimer() {
           if (newDone >= 4) {
             // Time for long break
             setSessionsDone(0);
-            toast.success('🌴 Длинный перерыв!', '4 pomodoro завершено — заслуженный отдых 15 мин.');
-            switchPhase('long-break');
-            return PHASE_SECS['long-break'];
+            toast.success('🌴 Длинный перерыв!', '4 pomodoro завершено — заслуженный отдых!');
+            switchPhase('long-break', phaseSecs);
+            return phaseSecs['long-break'];
           } else {
             toast.info('☕ Короткий перерыв', `Сессия ${newDone}/4 завершена`);
-            switchPhase('short-break');
-            return PHASE_SECS['short-break'];
+            switchPhase('short-break', phaseSecs);
+            return phaseSecs['short-break'];
           }
         } else {
           toast.success('🎯 Время фокуса!', 'Перерыв закончился. Начинаем!');
-          switchPhase('focus');
-          return PHASE_SECS['focus'];
+          switchPhase('focus', phaseSecs);
+          return phaseSecs['focus'];
         }
       });
     }, 1000);
 
     return stopInterval;
-  // sessionsDone intentionally excluded to avoid resetting interval mid-session
+  // sessionsDone and phaseSecs intentionally excluded to avoid resetting interval mid-session
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, phase, stopInterval, switchPhase]);
 
@@ -127,7 +171,7 @@ export function FocusTimer() {
         {(['focus', 'short-break', 'long-break'] as Phase[]).map((p) => (
           <button
             key={p}
-            onClick={() => switchPhase(p)}
+            onClick={() => switchPhase(p, phaseSecs)}
             style={{
               flex: 1, padding: '5px 6px',
               borderRadius: 8, border: 'none', cursor: 'pointer',
