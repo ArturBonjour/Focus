@@ -93,9 +93,9 @@ interface FocusModeClientProps {
 
 export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) {
   const router = useRouter();
-  const [phaseSecs, setPhaseSecs] = useState<Record<Phase, number>>(DEFAULT_PHASE_SECS);
+  const [phaseSecs, setPhaseSecs] = useState<Record<Phase, number>>(loadPhaseSecs);
   const [phase, setPhase] = useState<Phase>('focus');
-  const [timeLeft, setTimeLeft] = useState(DEFAULT_PHASE_SECS.focus);
+  const [timeLeft, setTimeLeft] = useState(() => loadPhaseSecs().focus);
   const [running, setRunning] = useState(false);
   const [sessionsDone, setSessionsDone] = useState(0);
   const [totalPomodoros, setTotalPomodoros] = useState(0);
@@ -109,6 +109,8 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
   const pickerRef = useRef<HTMLDivElement>(null);
 
   const selectedTask = tasks.find((t) => t.id === selectedTaskId) ?? null;
+  // phaseSecs is the authoritative durations source (loaded from localStorage on mount)
+  const PHASE_SECS = phaseSecs;
   const total = PHASE_SECS[phase];
   const progress = (total - timeLeft) / total;
   const r = 80;
