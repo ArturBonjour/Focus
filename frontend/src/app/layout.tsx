@@ -1,0 +1,77 @@
+import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { ThemeScript } from '@/components/theme-script';
+import { RouteProgress } from '@/components/route-progress';
+import { MobileBottomNav } from '@/components/mobile-bottom-nav';
+
+const inter = Inter({
+  subsets: ['latin', 'cyrillic'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+export const metadata: Metadata = {
+  title: { default: 'NeuroTrack', template: '%s | NeuroTrack' },
+  description:
+    'Your AI-powered productivity hub — tasks, habits, focus timer, and insights in one beautiful app.',
+  manifest: '/manifest.json',
+  authors: [{ name: 'NeuroTrack' }],
+  keywords: [
+    'productivity',
+    'habits',
+    'pomodoro',
+    'task management',
+    'focus timer',
+    'kanban',
+    'analytics',
+    'habit tracker',
+  ],
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'NeuroTrack',
+  },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/icon-192.png',
+  },
+  openGraph: {
+    title: 'NeuroTrack — AI Productivity Hub',
+    description:
+      'Your AI-powered productivity hub — tasks, habits, focus timer, and insights in one beautiful app.',
+    type: 'website',
+    locale: 'en_US',
+    siteName: 'NeuroTrack',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'NeuroTrack — AI Productivity Hub',
+    description:
+      'Your AI-powered productivity hub — tasks, habits, focus timer, and insights in one beautiful app.',
+  },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f4f4f8' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0f' },
+  ],
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="ru" suppressHydrationWarning className={inter.variable}>
+      <head>
+        <ThemeScript />
+      </head>
+      <body>
+        <RouteProgress />
+        {children}
+        <MobileBottomNav />
+      </body>
+    </html>
+  );
+}

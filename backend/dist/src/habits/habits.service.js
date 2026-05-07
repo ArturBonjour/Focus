@@ -1,0 +1,175 @@
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.HabitsService = void 0;
+const common_1 = require("@nestjs/common");
+const prisma_service_1 = require("../prisma/prisma.service");
+let HabitsService = class HabitsService {
+    prisma;
+    constructor(prisma) {
+        this.prisma = prisma;
+    }
+    findAll(userId) {
+        return this.prisma.habit.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+    create(userId, dto) {
+        return this.prisma.habit.create({
+            data: {
+                userId,
+                name: dto.name,
+            },
+        });
+    }
+    async update(userId, habitId, dto) {
+        await this.ensureOwnership(userId, habitId);
+        return this.prisma.habit.update({
+            where: { id: habitId },
+            data: dto,
+        });
+    }
+    async track(userId, habitId, dto) {
+        const habit = await this.ensureOwnership(userId, habitId);
+        const normalizedDate = dto.date.slice(0, 10);
+        const completedDays = this.extractDays(habit).includes(normalizedDate)
+            ? this.extractDays(habit)
+            : [...this.extractDays(habit), normalizedDate].sort();
+        const streak = this.calculateStreak(completedDays);
+        return this.prisma.habit.update({
+            where: { id: habitId },
+            data: {
+                completedDays,
+                streak,
+            },
+        });
+    }
+    async untrack(userId, habitId, dto) {
+        const habit = await this.ensureOwnership(userId, habitId);
+        const normalizedDate = dto.date.slice(0, 10);
+        const completedDays = this.extractDays(habit).filter((d) => d !== normalizedDate);
+        const streak = this.calculateStreak(completedDays);
+        return this.prisma.habit.update({
+            where: { id: habitId },
+            data: { completedDays, streak },
+        });
+    }
+    async getStats(userId) {
+        const habits = await this.prisma.habit.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+        });
+        const today = new Date();
+        const todayStr = today.toISOString().slice(0, 10);
+        return habits.map((h) => {
+            const days = this.extractDays(h);
+            const totalDays = days.length;
+            let longestStreak = 0;
+            let current = 0;
+            const sortedDays = [...days].sort();
+            for (let i = 0; i < sortedDays.length; i++) {
+                if (i === 0) {
+                    current = 1;
+                }
+                else {
+                    const prev = new Date(sortedDays[i - 1]);
+                    const curr = new Date(sortedDays[i]);
+                    const diff = (curr.getTime() - prev.getTime()) / 86_400_000;
+                    current = diff === 1 ? current + 1 : 1;
+                }
+                longestStreak = Math.max(longestStreak, current);
+            }
+            const thirtyDaysAgo = new Date(today);
+            thirtyDaysAgo.setDate(today.getDate() - 29);
+            const last30Dates = new Set(Array.from({ length: 30 }, (_, i) => {
+                const d = new Date(thirtyDaysAgo);
+                d.setDate(thirtyDaysAgo.getDate() + i);
+                return d.toISOString().slice(0, 10);
+            }));
+            const completedLast30 = days.filter((d) => last30Dates.has(d)).length;
+            const completionRate30d = Math.round((completedLast30 / 30) * 100);
+            const sevenDaysAgo = new Date(today);
+            sevenDaysAgo.setDate(today.getDate() - 6);
+            const last7Dates = new Set(Array.from({ length: 7 }, (_, i) => {
+                const d = new Date(sevenDaysAgo);
+                d.setDate(sevenDaysAgo.getDate() + i);
+                return d.toISOString().slice(0, 10);
+            }));
+            const completedLast7 = days.filter((d) => last7Dates.has(d)).length;
+            return {
+                id: h.id,
+                name: h.name,
+                streak: h.streak,
+                longestStreak,
+                totalDays,
+                completionRate30d,
+                completedLast7,
+                completedToday: days.includes(todayStr),
+            };
+        });
+    }
+    async remove(userId, habitId) {
+        await this.ensureOwnership(userId, habitId);
+        await this.prisma.habit.delete({ where: { id: habitId } });
+        return { success: true };
+    }
+    async ensureOwnership(userId, habitId) {
+        const habit = await this.prisma.habit.findFirst({
+            where: { id: habitId, userId },
+        });
+        if (!habit) {
+            throw new common_1.NotFoundException('Habit not found');
+        }
+        return habit;
+    }
+    extractDays(habit) {
+        if (!Array.isArray(habit.completedDays)) {
+            return [];
+        }
+        return habit.completedDays.filter((day) => typeof day === 'string');
+    }
+    calculateStreak(days) {
+        if (days.length === 0) {
+            return 0;
+        }
+        const sorted = [...days].sort();
+        const lastDay = sorted[sorted.length - 1];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        const todayStr = today.toISOString().slice(0, 10);
+        const yesterdayStr = yesterday.toISOString().slice(0, 10);
+        if (lastDay !== todayStr && lastDay !== yesterdayStr) {
+            return 0;
+        }
+        let streak = 1;
+        for (let index = sorted.length - 1; index > 0; index -= 1) {
+            const current = new Date(sorted[index]);
+            const previous = new Date(sorted[index - 1]);
+            const diff = (current.getTime() - previous.getTime()) / 86_400_000;
+            if (diff === 1) {
+                streak += 1;
+            }
+            else {
+                break;
+            }
+        }
+        return streak;
+    }
+};
+exports.HabitsService = HabitsService;
+exports.HabitsService = HabitsService = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+], HabitsService);
+//# sourceMappingURL=habits.service.js.map

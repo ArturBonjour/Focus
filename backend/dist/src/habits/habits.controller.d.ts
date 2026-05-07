@@ -1,0 +1,17 @@
+import type { JwtPayload } from '../auth/strategies/jwt.strategy';
+import { CreateHabitDto } from './dto/create-habit.dto';
+import { TrackHabitDto } from './dto/track-habit.dto';
+import { UpdateHabitDto } from './dto/update-habit.dto';
+import { HabitsService, HabitStats } from './habits.service';
+export declare class HabitsController {
+    private readonly habitsService;
+    constructor(habitsService: HabitsService);
+    findAll(user: JwtPayload): Promise<unknown>;
+    getStats(user: JwtPayload): Promise<HabitStats[]>;
+    create(user: JwtPayload, dto: CreateHabitDto): Promise<unknown>;
+    update(user: JwtPayload, id: string, dto: UpdateHabitDto): Promise<unknown>;
+    patch(user: JwtPayload, id: string, dto: UpdateHabitDto): Promise<unknown>;
+    track(user: JwtPayload, id: string, dto: TrackHabitDto): Promise<unknown>;
+    untrack(user: JwtPayload, id: string, dto: TrackHabitDto): Promise<unknown>;
+    remove(user: JwtPayload, id: string): Promise<unknown>;
+}

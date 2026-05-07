@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+model User {
+  id               String            @id @default(cuid())
+  email            String            @unique
+  name             String?
+  passwordHash     String
+  refreshTokenHash String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  tasks            Task[]
+  habits           Habit[]
+  productivityLogs ProductivityLog[]
+  notes            Note[]
+  goals            Goal[]
+  focusSessions    FocusSession[]
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  priority    TaskPriority @default(MEDIUM)
+  status      TaskStatus   @default(TODO)
+  deadline    DateTime?
+  completedAt DateTime?
+  tags        String[]     @default([])
+  subtasks    Json         @default("[]")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([deadline])
+}
+
+model Habit {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String
+  streak        Int      @default(0)
+  completedDays Json     @default("[]")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ProductivityLog {
+  id                  String   @id @default(cuid())
+  userId              String
+  date                DateTime
+  completedTasksCount Int      @default(0)
+  activeMinutes       Int      @default(0)
+  createdAt           DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  content   String   @default("")
+  mood      String?
+  color     String   @default("#6366f1")
+  pinned    Boolean  @default(false)
+  tags      String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, pinned])
+}
+
+model Goal {
+  id          String    @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  category    String    @default("personal")
+  target      Float     @default(100)
+  current     Float     @default(0)
+  unit        String    @default("%")
+  deadline    DateTime?
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  color       String    @default("#6366f1")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, completed])
+}
+
+model FocusSession {
+  id          String   @id @default(cuid())
+  userId      String
+  phase       String   @default("focus")
+  taskTitle   String?
+  durationMin Int      @default(25)
+  completedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, completedAt])
+}
