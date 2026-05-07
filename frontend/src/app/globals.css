@@ -622,6 +622,21 @@ button {
   animation: slide-up-fade 0.4s ease both;
 }
 
+/* ─── Respect reduced motion preferences ─────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ─── Card hover ring ────────────────────────────────────────────────── */
 .card-hover-ring:hover {
   box-shadow: 0 0 0 2px rgba(139,92,246,0.5), var(--shadow-elevated);

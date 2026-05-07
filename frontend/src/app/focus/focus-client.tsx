@@ -93,7 +93,7 @@ interface FocusModeClientProps {
 
 export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) {
   const router = useRouter();
-  const [phaseSecs, setPhaseSecs] = useState<Record<Phase, number>>(loadPhaseSecs);
+  const [phaseSecs] = useState<Record<Phase, number>>(loadPhaseSecs);
   const [phase, setPhase] = useState<Phase>('focus');
   const [timeLeft, setTimeLeft] = useState(() => loadPhaseSecs().focus);
   const [running, setRunning] = useState(false);
@@ -109,10 +109,8 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
   const pickerRef = useRef<HTMLDivElement>(null);
 
   const selectedTask = tasks.find((t) => t.id === selectedTaskId) ?? null;
-  // phaseSecs is the authoritative durations source (loaded from localStorage on mount)
-  const PHASE_SECS = phaseSecs;
-  const total = PHASE_SECS[phase];
-  const progress = (total - timeLeft) / total;
+  const total = phaseSecs[phase];
+  const progress = total > 0 ? Math.min(Math.max((total - timeLeft) / total, 0), 1) : 0;
   const r = 80;
   const circumference = 2 * Math.PI * r;
   const dashOffset = circumference * (1 - progress);
@@ -148,8 +146,8 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
     stopInterval();
     setRunning(false);
     setPhase(next);
-    setTimeLeft(PHASE_SECS[next]);
-  }, [stopInterval]);
+    setTimeLeft(phaseSecs[next]);
+  }, [stopInterval, phaseSecs]);
 
   // Timer tick
   useEffect(() => {
@@ -165,30 +163,29 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
           setTotalPomodoros((p) => p + 1);
           setCompleted(true);
           setTimeout(() => setCompleted(false), 2500);
-          recordSession('focus', selectedTask?.title ?? null, Math.round(PHASE_SECS.focus / 60));
+          recordSession('focus', selectedTask?.title ?? null, Math.round(phaseSecs.focus / 60));
 
           if (newDone >= 4) {
             setSessionsDone(0);
             toast.success('🌴 Длинный перерыв!', '4 pomodoro завершено — вы заслужили отдых!');
             switchPhase('long-break');
-            return PHASE_SECS['long-break'];
+            return phaseSecs['long-break'];
           } else {
             toast.info('☕ Короткий перерыв', `Сессия ${newDone}/4 завершена`);
             switchPhase('short-break');
-            return PHASE_SECS['short-break'];
+            return phaseSecs['short-break'];
           }
         } else {
-          recordSession(phase, null, Math.round(PHASE_SECS[phase] / 60));
+          recordSession(phase, null, Math.round(phaseSecs[phase] / 60));
           toast.success('🎯 Время фокуса!', 'Перерыв закончился.');
           switchPhase('focus');
-          return PHASE_SECS['focus'];
+          return phaseSecs['focus'];
         }
       });
     }, 1000);
 
     return stopInterval;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running, phase, stopInterval, switchPhase, recordSession]);
+  }, [running, phase, stopInterval, switchPhase, recordSession, phaseSecs, selectedTask?.title, sessionsDone]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -196,12 +193,12 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
       const tag = (e.target as HTMLElement).tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
       if (e.key === ' ') { e.preventDefault(); setRunning((r) => !r); }
-      if (e.key === 'r' || e.key === 'R') { stopInterval(); setRunning(false); setTimeLeft(PHASE_SECS[phase]); }
+      if (e.key === 'r' || e.key === 'R') { stopInterval(); setRunning(false); setTimeLeft(phaseSecs[phase]); }
       if (e.key === 'Escape') router.push('/');
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [phase, stopInterval, router]);
+  }, [phase, stopInterval, router, phaseSecs]);
 
   // Close picker on outside click
   useEffect(() => {
@@ -473,7 +470,7 @@ export function FocusModeClient({ tasks, apiUrl, token }: FocusModeClientProps) 
         </button>
 
         <button
-          onClick={() => { stopInterval(); setRunning(false); setTimeLeft(PHASE_SECS[phase]); }}
+          onClick={() => { stopInterval(); setRunning(false); setTimeLeft(phaseSecs[phase]); }}
           style={{
             width: 44, height: 44, borderRadius: '50%',
             background: 'var(--bg-card)', border: '1px solid var(--border)',
