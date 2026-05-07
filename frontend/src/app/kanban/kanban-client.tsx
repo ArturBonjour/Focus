@@ -282,12 +282,7 @@ export function KanbanBoard({ initialTasks, apiUrl, token }: KanbanBoardProps) {
       </div>
 
       {/* Columns */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: 16,
-        alignItems: 'start',
-      }}>
+      <div className="kanban-grid">
         {COLUMN_CONFIG.map((col) => {
           const colTasks = tasks.filter((t) => t.status === col.id);
           const isOver = dragOverCol === col.id;

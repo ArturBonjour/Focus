@@ -181,7 +181,7 @@ export function AnalyticsClient({ overview, apiUrl, token }: { overview: Overvie
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* ── Row 1: Score + KPIs ── */}
-      <section className="stagger" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr 1fr 1fr 1fr', gap: 14, alignItems: 'stretch' }}>
+      <section className="stagger analytics-score-row">
         {/* Score Gauge */}
         <div className="card animate-fade-in glow-card" style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, minWidth: 160 }}>
           <p style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Productivity Score</p>

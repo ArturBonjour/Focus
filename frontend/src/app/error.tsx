@@ -8,16 +8,37 @@ export default function GlobalError({
   reset: () => void;
 }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950">
-      <div className="glass-card p-8 text-center max-w-md animate-scale-in">
-        <div className="text-6xl mb-4">⚡</div>
-        <h2 className="text-xl font-semibold text-white mb-2">Something went wrong</h2>
-        <p className="text-gray-400 text-sm mb-6">{error.message || 'An unexpected error occurred'}</p>
+    <div style={{
+      minHeight: '100dvh',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'var(--bg-base)',
+      padding: 20,
+      position: 'relative',
+    }}>
+      <div className="ambient-bg" aria-hidden="true">
+        <div className="ambient-blob ambient-blob-1" />
+        <div className="ambient-blob ambient-blob-2" />
+        <div className="ambient-blob ambient-blob-3" />
+      </div>
+      <div className="card animate-scale-in" style={{
+        padding: '48px 40px',
+        textAlign: 'center',
+        maxWidth: 400,
+        position: 'relative',
+        zIndex: 1,
+      }}>
+        <div style={{ fontSize: '3.5rem', marginBottom: 16, lineHeight: 1 }}>⚡</div>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
+          Что-то пошло не так
+        </h2>
+        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: 28, lineHeight: 1.6 }}>
+          {error.message || 'Произошла непредвиденная ошибка. Попробуйте ещё раз.'}
+        </p>
         <button
           onClick={reset}
-          className="px-6 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white transition-all duration-200 btn-neon"
+          className="btn btn-primary btn-neon"
         >
-          Try again
+          Попробовать снова
         </button>
       </div>
     </div>

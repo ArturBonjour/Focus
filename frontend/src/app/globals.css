@@ -82,7 +82,7 @@ html {
 body {
   background: var(--bg-base);
   color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   transition: background 0.25s var(--ease), color 0.25s var(--ease);
@@ -695,3 +695,138 @@ button {
     padding: 16px 12px 80px;
   }
 }
+
+/* ─── Form element base styles ────────────────────────────────────────── */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 32px !important;
+  cursor: pointer;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="url"],
+textarea,
+select {
+  font-family: inherit;
+  color: var(--text-primary);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* ─── Analytics responsive grid ───────────────────────────────────────── */
+.analytics-score-row {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr 1fr 1fr;
+  gap: 14px;
+  align-items: stretch;
+}
+@media (max-width: 1100px) {
+  .analytics-score-row {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+@media (max-width: 700px) {
+  .analytics-score-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 480px) {
+  .analytics-score-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Smooth details/summary animation ──────────────────────────────── */
+details > summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+details > summary::-webkit-details-marker { display: none; }
+
+/* ─── Progress bar animation ─────────────────────────────────────────── */
+@keyframes progress-fill {
+  from { width: 0%; }
+}
+.progress-animated {
+  animation: progress-fill 1s cubic-bezier(0.4,0,0.2,1) both;
+}
+
+/* ─── Tooltip base ───────────────────────────────────────────────────── */
+[title] {
+  position: relative;
+}
+
+/* ─── Focus mode full-screen transitions ─────────────────────────────── */
+.focus-mode-enter {
+  animation: fade-in 0.3s var(--ease) both;
+}
+
+/* ─── Neon glow variant for dark mode ────────────────────────────────── */
+[data-theme="dark"] .btn-neon {
+  box-shadow: 0 0 20px rgba(99,102,241,0.4), 0 0 40px rgba(99,102,241,0.2);
+}
+[data-theme="dark"] .btn-neon:hover {
+  box-shadow: 0 0 30px rgba(99,102,241,0.6), 0 0 60px rgba(99,102,241,0.3);
+}
+
+/* ─── Kanban responsive ──────────────────────────────────────────────── */
+.kanban-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .kanban-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 580px) {
+  .kanban-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Truncate long text ────────────────────────────────────────────── */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ─── Tag chip ──────────────────────────────────────────────────────── */
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: rgba(99,102,241,0.10);
+  color: var(--accent-1);
+  border: 1px solid rgba(99,102,241,0.15);
+  white-space: nowrap;
+}
+[data-theme="dark"] .tag-chip {
+  background: rgba(99,102,241,0.15);
+  border-color: rgba(99,102,241,0.25);
+}
+
